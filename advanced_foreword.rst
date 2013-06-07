@@ -1,68 +1,43 @@
 .. _advanced_foreword:
 
-Foreword for Experienced Programmers
-====================================
+给经验丰富的程序员的前言
+==========================
 
-Thread-Locals in Flask
+Flask中的本地线程
 ----------------------
 
-One of the design decisions in Flask was that simple tasks should be simple;
-they should not take a lot of code and yet they should not limit you. Because
-of that, Flask has few design choices that some people might find surprising or
-unorthodox. For example, Flask uses thread-local objects internally so that you
-don’t have to pass objects around from function to function within a request in
-order to stay threadsafe. This approach is convenient, but requires a valid
-request context for dependency injection or when attempting to reuse code which
-uses a value pegged to the request.  The Flask project is honest about
-thread-locals, does not hide them, and calls out in the code and documentation
-where they are used.
+Flask其中的一条设计原则就是简单的任务保持简单；任务的实现不需要花费太多的代码也不会限制到你。
+因此，Flask的一些设计决定可能会让一些人感到很惊讶或者非正统。
+例如，Flask内部使用了本地线程对象，这样在一个请求中不必在函数之间传递对象以保证线程安全。
+这种方式是十分方便，但是为依赖注入或者尝试重用与请求挂钩的值的代码，需要一个有效的请求上下文。
+Flask项目对本地线程很公开的，并不会去隐藏它们，在使用到它们的代码和文档里面都会指出。
 
-Develop for the Web with Caution
---------------------------------
+小心翼翼地进行Web开发
+-----------------------
 
-Always keep security in mind when building web applications.
+在构建Web应用程序时，始终考虑到安全性。
 
-If you write a web application, you are probably allowing users to register
-and leave their data on your server.  The users are entrusting you with data.
-And even if you are the only user that might leave data in your application,
-you still want that data to be stored securely.
+如果你编写了一个 Web 应用，你很可能允许用户在你的服务器上注册并留下数据。即 使这是唯一的用户，也可能会在应用中留下数据。用户们把数据托付给你，你当然更希望这些数据被安全地保存。
 
-Unfortunately, there are many ways the security of a web application can be
-compromised.  Flask protects you against one of the most common security
-problems of modern web applications: cross-site scripting (XSS).  Unless you
-deliberately mark insecure HTML as secure, Flask and the underlying Jinja2
-template engine have you covered.  But there are many more ways to cause
-security problems.
+不幸的是，有很多方法可以使得一个Web应用程序的安全性受到损害。
+Flask能够让你免受现代Web应用常见的一个安全问题的困扰：跨站脚本攻击（XSS）。
+如果你不是刻意地把不安全的HTML标记成安全的，Flask以及底层的Jinja2模版引擎会守护着你。
+但目前还存在着更多的方法来引起安全问题。
 
-The documentation will warn you about aspects of web development that require
-attention to security.  Some of these security concerns are far more complex
-than one might think, and we all sometimes underestimate the likelihood that a
-vulnerability will be exploited - until a clever attacker figures out a way to
-exploit our applications.  And don't think that your application is not
-important enough to attract an attacker.  Depending on the kind of attack,
-chances are that automated bots are probing for ways to fill your database with
-spam, links to malicious software, and the like.
+本文档会在 web 开发中那些需要注意安全的方面提醒你。这些安全考虑中的某些远比 人们想象的复杂，我们有时候低估漏洞被利用的可能性——直到一个聪明的攻击者找出利 用应用的方法。并且，不要想着你的应用没有重要到可以吸引攻击者。取决于攻击的类 型，有时候是自动化的僵尸机器搜寻在你数据库中填充垃圾、恶意程序链接等的方法。
 
-Flask is no different from any other framework in that you the developer must
-build with caution, watching for exploits when building to your requirements.
+开发者必须在为需求编写代码时留心安全隐患，在这点上，Flask与其它框架没有区别。
 
-The Status of Python 3
+Python 3的状况
 ----------------------
 
-Currently the Python community is in the process of improving libraries to
-support the new iteration of the Python programming language.  While the
-situation is greatly improving there are still some issues that make it
-hard for us to switch over to Python 3 just now.  These problems are
-partially caused by changes in the language that went unreviewed for too
-long, partially also because we have not quite worked out how the lower-
-level API should change to account for the Unicode differences in Python 3.
+目前Python社区正处于改善库以对Python编程语言中迭代支持的进程中。尽管情况大大改善，
+但还存在一些问题，因此使我们现在很难切换到Python 3上。
+导致这些问题的一部分原因是语言中的变更长时间没有复查，
+一部分也是因为我们没有找出低层API应该如何做出修改来适应Python 3中Unicode的差异。
 
-Werkzeug and Flask will be ported to Python 3 as soon as a solution for
-the changes is found, and we will provide helpful tips how to upgrade
-existing applications to Python 3.  Until then, we strongly recommend
-using Python 2.6 and 2.7 with activated Python 3 warnings during
-development.  If you plan on upgrading to Python 3 in the near future we
-strongly recommend that you read `How to write forwards compatible
+一旦应对变更的解决方案出现，Werkzeug和Flask就会立刻迁移到Python 3，并且我们会提供升级现有应用到Python 3的提示。在那之前，我们强烈建议在开发时候使用Python 2.6和2.7，并打开Python 3警告。
+如果你计划在近期升级到Python 3 ，我们强烈推荐你阅读  `How to write forwards compatible
 Python code <http://lucumr.pocoo.org/2011/1/22/forwards-compatible-python/>`_.
 
-Continue to :ref:`installation` or the :ref:`quickstart`.
+请继续阅读 :ref:`installation` 或者 :ref:`quickstart`。

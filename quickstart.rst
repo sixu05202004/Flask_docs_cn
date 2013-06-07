@@ -1,17 +1,16 @@
 .. _quickstart:
 
-Quickstart
+快速入门
 ==========
 
-Eager to get started?  This page gives a good introduction to Flask.  It
-assumes you already have Flask installed.  If you do not, head over to the
-:ref:`installation` section.
+迫切希望上手？本文提供了一个很好的Flask介绍。假设你已经安装Flask，
+如果还没有安装话，请浏览下 :ref:`installation` 。
 
 
-A Minimal Application
+一个最小的应用
 ---------------------
 
-A minimal Flask application looks something like this::
+一个最小的应用看起来像这样::
 
     from flask import Flask
     app = Flask(__name__)
@@ -23,19 +22,17 @@ A minimal Flask application looks something like this::
     if __name__ == '__main__':
         app.run()
 
-Just save it as `hello.py` (or something similar) and run it with your Python
-interpreter.  Make sure to not call your application `flask.py` because this
-would conflict with Flask itself.
+把它保存成 `hello.py` (或者类似的文件)，然后用Python解释器运行它。确保你的应用不叫做 `flask.py`，
+因为这会与Flask本身冲突。
 
 ::
 
     $ python hello.py
      * Running on http://127.0.0.1:5000/
 
-Now head over to `http://127.0.0.1:5000/ <http://127.0.0.1:5000/>`_, and you
-should see your hello world greeting.
+现在浏览 `http://127.0.0.1:5000/ <http://127.0.0.1:5000/>`_，你会看到你的hello world问候。
 
-So what did that code do?
+那么这段代码做了什么？
 
 1. First we imported the :class:`~flask.Flask` class.  An instance of this
    class will be our WSGI application.  The first argument is the name of
@@ -79,7 +76,7 @@ To stop the server, hit control-C.
 
 .. _debug-mode:
 
-Debug Mode
+调试模式
 ----------
 
 The :meth:`~flask.Flask.run` method is nice to start a local
@@ -117,7 +114,7 @@ Screenshot of the debugger in action:
 Have another debugger in mind? See :ref:`working-with-debuggers`.
 
 
-Routing
+路由
 -------
 
 Modern web applications have beautiful URLs.  This helps people remember
@@ -140,7 +137,7 @@ bind a function to a URL.  Here are some basic examples::
 But there is more to it!  You can make certain parts of the URL dynamic and
 attach multiple rules to a function.
 
-Variable Rules
+变量规则
 ``````````````
 
 To add variable parts to a URL you can mark these special sections as
@@ -200,7 +197,7 @@ The following converters exist:
 
 .. _url-building:
 
-URL Building
+构建URL
 ````````````
 
 If it can match URLs, can Flask also generate them?  Of course it can.  To
@@ -250,7 +247,7 @@ templates?  There are three good reasons for this:
    that properly for you.
 
 
-HTTP Methods
+HTTP方法
 ````````````
 
 HTTP (the protocol web applications are speaking) knows different methods for
@@ -324,7 +321,7 @@ use it.
 
 .. _HTTP RFC: http://www.ietf.org/rfc/rfc2068.txt
 
-Static Files
+静态文件
 ------------
 
 Dynamic web applications also need static files.  That's usually where
@@ -339,7 +336,7 @@ To generate URLs for static files, use the special ``'static'`` endpoint name::
 
 The file has to be stored on the filesystem as ``static/style.css``.
 
-Rendering Templates
+渲染模板
 -------------------
 
 Generating HTML from within Python is not fun, and actually pretty
@@ -431,7 +428,7 @@ u'Marked up \xbb HTML'
    information.
 
 
-Accessing Request Data
+接收请求数据
 ----------------------
 
 For web applications it's crucial to react to the data a client sent to
@@ -443,7 +440,7 @@ manages to still be threadsafe.  The answer is context locals:
 
 .. _context-locals:
 
-Context Locals
+上下文
 ``````````````
 
 .. admonition:: Insider Information
@@ -489,7 +486,7 @@ The other possibility is passing a whole WSGI environment to the
     with app.request_context(environ):
         assert request.method == 'POST'
 
-The Request Object
+请求对象
 ``````````````````
 
 The request object is documented in the API section and we will not cover
@@ -537,7 +534,7 @@ For a full list of methods and attributes of the request object, head over
 to the :class:`~flask.request` documentation.
 
 
-File Uploads
+文件上传
 ````````````
 
 You can handle uploaded files with Flask easily.  Just make sure not to
@@ -624,7 +621,7 @@ object does not exist yet.  This is possible by utilizing the
 
 For this also see :ref:`about-responses`.
 
-Redirects and Errors
+重定向和错误
 --------------------
 
 To redirect a user to somewhere else you can use the
@@ -662,7 +659,7 @@ not found.  By default 200 is assumed which translates to: all went well.
 
 .. _about-responses:
 
-About Responses
+关于响应
 ---------------
 
 The return value from a view function is automatically converted into a
@@ -708,7 +705,7 @@ return it:
 
 .. _sessions:
 
-Sessions
+会话
 --------
 
 In addition to the request object there is also a second object called
@@ -775,7 +772,7 @@ not getting a clear error message, check the size of the cookie in your page
 responses compared to the size supported by web browsers.
 
 
-Message Flashing
+消息闪烁
 ----------------
 
 Good applications and user interfaces are all about feedback.  If the user
@@ -791,7 +788,7 @@ messages you can use :func:`~flask.get_flashed_messages` which is also
 available in the templates.  Check out the :ref:`message-flashing-pattern`
 for a full example.
 
-Logging
+日志
 -------
 
 .. versionadded:: 0.3
@@ -832,7 +829,7 @@ can do it like this::
 
 .. _quickstart_deployment:
 
-Deploying to a Web Server
+部署到Web服务器
 -------------------------
 
 Ready to deploy your new Flask app?  To wrap up the quickstart, you can

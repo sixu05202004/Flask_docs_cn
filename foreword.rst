@@ -20,19 +20,9 @@ Flask有许多带有合理默认值的配置项，也遵循一些惯例。例如
 
 一旦你的Flask项目搭建以及运行起来，你会发现在社区中有大量可用的扩展集成到你的生产环境项目中来。Flask 核心团队会审阅这些扩展，确保经过验证过的扩展在未来版本中仍能使用。
 
-随着你的代码库的增长，你能够自由地做出决定是恰当的设计为您的项目
+随着你的代码库的增长，你能够自由地为你的项目做出恰当的设计决定。Flask会继续尽Python的可能提供一个简单的粘合层。你可以在SQLAlchemy 或者其它数据库工具中实现高级模式，适当的时候引入非关系型数据持久化，使用框架无关的WSGI工具，WSGI是Python的web接口。
 
-As your codebase grows, you are free to make the design decisions appropriate
-for your project.  Flask will continue to provide a very simple glue layer to
-the best that Python has to offer.  You can implement advanced patterns in
-SQLAlchemy or another database tool, introduce non-relational data persistence
-as appropriate, and take advantage of framework-agnostic tools built for WSGI,
-the Python web interface.
+Flask中有许多可定制化的钩子。如果你需要更多地定制化，只需要继承Flask类就行了。如果对此有兴趣的话，可以查看 :ref:`becomingbig` 。
+如果你对Flask设计原理好奇的话，请阅读 :ref:`design` 。
 
-Flask includes many hooks to customize its behavior. Should you need more
-customization, the Flask class is built for subclassing. If you are interested
-in that, check out the :ref:`becomingbig` chapter.  If you are curious about
-the Flask design principles, head over to the section about :ref:`design`.
-
-Continue to :ref:`installation`, the :ref:`quickstart`, or the
-:ref:`advanced_foreword`.
+请继续浏览 :ref:`installation` ，:ref:`quickstart`，或者 :ref:`advanced_foreword`。
