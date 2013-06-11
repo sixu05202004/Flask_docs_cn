@@ -34,44 +34,30 @@
 
 那么这段代码做了什么？
 
-1. First we imported the :class:`~flask.Flask` class.  An instance of this
-   class will be our WSGI application.  The first argument is the name of
-   the application's module.  If you are using a single module (as in this
-   example), you should use `__name__` because depending on if it's started as
-   application or imported as module the name will be different (``'__main__'``
-   versus the actual import name).  For more information, have a look at the
-   :class:`~flask.Flask` documentation.
-2. Next we create an instance of this class.  We pass it the name of the module
-   or package.  This is needed so that Flask knows where to look for templates,
-   static files, and so on.
-3. We then use the :meth:`~flask.Flask.route` decorator to tell Flask what URL
-   should trigger our function.
-4. The function is given a name which is also used to generate URLs for that
-   particular function, and returns the message we want to display in the
-   user's browser.
-5. Finally we use the :meth:`~flask.Flask.run` function to run the local server
-   with our application.  The ``if __name__ == '__main__':`` makes sure the
-   server only runs if the script is executed directly from the Python
-   interpreter and not used as imported module.
+1. 首先我们导入了类 :class:`~flask.Flask` 。这个类的实例化将会是我们的WSGI应用。第一个参数是应用模块的名称。
+   如果你使用的是单一的模块（就如本例），第一个参数应该使用 `__name__`。因为取决于如果它以单独应用启动或作为模块导入，
+   名称将会不同 （ ``'__main__'`` 对应于实际导入的名称）。获取更多的信息，请阅读 :class:`~flask.Flask` 的文档。
+2. 接着，我们创建一个该类的实例。我们传递给它模块或包的名称。这样Flask才会知道去哪里寻找模板、静态文件等等。
+3. 我们使用装饰器 :meth:`~flask.Flask.route` 告诉Flask哪个URL才能触发我们的函数。
+4. 定义一个函数，该函数名也是用来给特定函数生成URLs，并且返回我们想要显示在用户浏览器上的信息。
+5. 最后我们用函数 :meth:`~flask.Flask.run` 启动本地服务器来运行我们的应用。``if __name__ == '__main__':``
+   确保服务器只会在该脚本被Python解释器直接执行的时候才会运行，而不是作为模块导入的时候。
 
-To stop the server, hit control-C.
+请按 control-C 来停止服务器。
 
 .. _public-server:
 
-.. admonition:: Externally Visible Server
+.. admonition:: 外部可见服务器 
 
-   If you run the server you will notice that the server is only accessible
-   from your own computer, not from any other in the network.  This is the
-   default because in debugging mode a user of the application can execute
-   arbitrary Python code on your computer.
+   当你运行服务器，你会注意到它只能从你自己的计算机上访问，网络中其它任何的地方都不能访问。
+   这是因为默认情况下，调试模式，应用中的一个用户可以执行你计算机上的任意Python代码。
 
-   If you have `debug` disabled or trust the users on your network, you can
-   make the server publicly available simply by changing the call of the
-   :meth:`~flask.Flask.run` method to look like this::
+   如果你关闭 `debug` 或者信任你所在网络上的用户，你可以让你的服务器对外可用，只要简单地改变方法
+   :meth:`~flask.Flask.run` 的调用像如下这样::
 
        app.run(host='0.0.0.0')
 
-   This tells your operating system to listen on all public IPs.
+   这让你的操作系统去监听所有公开的IP。
 
 
 .. _debug-mode:
@@ -79,52 +65,43 @@ To stop the server, hit control-C.
 调试模式
 ----------
 
-The :meth:`~flask.Flask.run` method is nice to start a local
-development server, but you would have to restart it manually after each
-change to your code.  That is not very nice and Flask can do better.  If
-you enable debug support the server will reload itself on code changes,
-and it will also provide you with a helpful debugger if things go wrong.
+:meth:`~flask.Flask.run` 方法是十分适用于启动一个本地开发服务器，但是你需要在修改代码后手动重启服务器。
+这样做并不好，Flask能做得更好。如果启用了调试支持，在代码修改的时候服务器能够自动加载，
+并且如果发生错误，它会提供一个有用的调试器。
 
-There are two ways to enable debugging.  Either set that flag on the
-application object::
+有两种方式开启调式模式。一种是在应用对象上设置标志位::
 
     app.debug = True
     app.run()
 
-Or pass it as a parameter to run::
+或者作为run的一个参数传入::
 
     app.run(debug=True)
 
-Both methods have the exact same effect.
+两种方法效果是一样的。
 
 .. admonition:: Attention
 
-   Even though the interactive debugger does not work in forking environments
-   (which makes it nearly impossible to use on production servers), it still
-   allows the execution of arbitrary code. This makes it a major security risk
-   and therefore it **must never be used on production machines**.
+   尽管交互式调试器不能在分叉(forking)环境上工作(这使得它几乎不可能在生产服务器上使用)，
+   它依然允许执行任意代码。这使它成为一个巨大的安全风险，因此它 **绝对不能用于生成环境**。
 
-Screenshot of the debugger in action:
+运行中的调试器的截图:
 
 .. image:: _static/debugger.png
    :align: center
    :class: screenshot
    :alt: screenshot of debugger in action
 
-Have another debugger in mind? See :ref:`working-with-debuggers`.
+是不是还有其它的调试器？请查看 :ref:`working-with-debuggers`。
 
 
 路由
 -------
 
-Modern web applications have beautiful URLs.  This helps people remember
-the URLs, which is especially handy for applications that are used from
-mobile devices with slower network connections.  If the user can directly
-go to the desired page without having to hit the index page it is more
-likely they will like the page and come back next time.
+现代Web应用程序有优雅的URLs。这能够帮助人们记住URLs，这点在面向使用慢网络连接的移动设备的应用上有用。
+如果用户不必通过点击首页而直接访问想要的页面，很可能他们会喜欢这个页面而且下次再次访问。
 
-As you have seen above, the :meth:`~flask.Flask.route` decorator is used to
-bind a function to a URL.  Here are some basic examples::
+正如上面所说，meth:`~flask.Flask.route` 装饰器是用于把一个函数绑定到一个URL上。这有些基本的例子::
 
     @app.route('/')
     def index():
@@ -134,16 +111,14 @@ bind a function to a URL.  Here are some basic examples::
     def hello():
         return 'Hello World'
 
-But there is more to it!  You can make certain parts of the URL dynamic and
-attach multiple rules to a function.
+但是不仅如此！你可以动态地构造URL的特定部分，也可以在一个函数上附加多个规则。
 
 变量规则
 ``````````````
 
-To add variable parts to a URL you can mark these special sections as
-``<variable_name>``.  Such a part is then passed as keyword argument to your
-function.  Optionally a converter can be specified by specifying a rule with
-``<converter:variable_name>``.  Here are some nice examples::
+为了给URL增加变量的部分，你需要把一些特定的字段标记成 ``<variable_name>``。这些特定的字段
+将作为参数传入到你的函数中。当然也可以指定一个可选的转换器通过规则 ``<converter:variable_name>``。
+这里有一些不错的例子::
 
     @app.route('/user/<username>')
     def show_user_profile(username):
@@ -155,21 +130,20 @@ function.  Optionally a converter can be specified by specifying a rule with
         # show the post with the given id, the id is an integer
         return 'Post %d' % post_id
 
-The following converters exist:
+存在如下转换器:
 
 =========== ===========================================
-`int`       accepts integers
-`float`     like `int` but for floating point values
-`path`      like the default but also accepts slashes
+`int`       接受整数
+`float`     同 `int` 一样，但是接受浮点数
+`path`      和默认的相似，但也接受斜线
 =========== ===========================================
 
-.. admonition:: Unique URLs / Redirection Behavior
+.. admonition:: 唯一 URLs / 重定向行为
 
-   Flask's URL rules are based on Werkzeug's routing module.  The idea
-   behind that module is to ensure beautiful and unique URLs based on
-   precedents laid down by Apache and earlier HTTP servers.
+   Flask的URL规则是基于Werkzeug的routing模块。
+   该模块背后的想法是基于Apache和早期的HTTP服务器定下先例确保美丽和唯一的URL。  
 
-   Take these two rules::
+   以这两个规则为例::
 
         @app.route('/projects/')
         def projects():
@@ -179,20 +153,15 @@ The following converters exist:
         def about():
             return 'The about page'
 
-   Though they look rather similar, they differ in their use of the trailing
-   slash in the URL *definition*.  In the first case, the canonical URL for the
-   `projects` endpoint has a trailing slash.  In that sense, it is similar to
-   a folder on a file system.  Accessing it without a trailing slash will cause
-   Flask to redirect to the canonical URL with the trailing slash.
+   虽然它们看起来确实相似，但它们结尾斜线的使用在URL *定义* 中不同。 
+   第一种情况中，规范的URL指向projects尾端有一个斜线。
+   这种感觉很像在文件系统中的文件夹。访问一个结尾不带斜线的URL会被Flask重定向到带斜线的规范URL去。
 
-   In the second case, however, the URL is defined without a trailing slash,
-   rather like the pathname of a file on UNIX-like systems. Accessing the URL
-   with a trailing slash will produce a 404 "Not Found" error.
+   然而，第二种情况的URL结尾不带斜线，类似UNIX-like系统下的文件的路径名。
+   访问结尾带斜线的URL会产生一个 404 “Not Found” 错误。
 
-   This behavior allows relative URLs to continue working if users access the
-   page when they forget a trailing slash, consistent with how Apache
-   and other servers work.  Also, the URLs will stay unique, which helps search
-   engines avoid indexing the same page twice.
+   当用户访问页面时忘记结尾斜线时，这个行为允许关联的URL继续工作，
+   并且与Apache和其它的服务器的行为一致。另外，URL会保持唯一，有助于避免搜索引擎索引同一个页面两次。
 
 
 .. _url-building:
@@ -200,12 +169,9 @@ The following converters exist:
 构建URL
 ````````````
 
-If it can match URLs, can Flask also generate them?  Of course it can.  To
-build a URL to a specific function you can use the :func:`~flask.url_for`
-function.  It accepts the name of the function as first argument and a number
-of keyword arguments, each corresponding to the variable part of the URL rule.
-Unknown variable parts are appended to the URL as query parameters.  Here are
-some examples:
+如果它可以匹配URL，那么Flask能够生成它们吗？当然Flask能够做到。你可以使用函数
+:func:`~flask.url_for` 来针对一个特定的函数构建一个URL。它能够接受函数名作为第一参数，以及一些关键字参数，
+每一个关键字参数对应于URL规则的变量部分。未知变量部分被插入到URL中作为查询参数。这里有些例子：
 
 >>> from flask import Flask, url_for
 >>> app = Flask(__name__)
@@ -229,31 +195,23 @@ some examples:
 /login?next=/
 /user/John%20Doe
 
-(This also uses the :meth:`~flask.Flask.test_request_context` method, explained
-below.  It tells Flask to behave as though it is handling a request, even
-though we are interacting with it through a Python shell.  Have a look at the
-explanation below. :ref:`context-locals`).
+(这里也使用了 :meth:`~flask.Flask.test_request_context` 方法，下面会给出解释。这个方法告诉Flask表现得像是在处理一个请求，即使我们正在通过Python的shell交互。
+请看下面的解释。 :ref:`context-locals`)。
 
-Why would you want to build URLs instead of hard-coding them into your
-templates?  There are three good reasons for this:
+为什么你愿意构建URLs而不是在模版中硬编码？这里有三个好的理由：
 
-1. Reversing is often more descriptive than hard-coding the URLs.  More
-   importantly, it allows you to change URLs in one go, without having to
-   remember to change URLs all over the place.
-2. URL building will handle escaping of special characters and Unicode
-   data transparently for you, so you don't have to deal with them.
-3. If your application is placed outside the URL root (say, in
-   ``/myapplication`` instead of ``/``), :func:`~flask.url_for` will handle
-   that properly for you.
+1. 反向构建通常比硬编码更具备描述性。更重要的是，它允许你一次性修改URL， 
+   而不是到处找URL修改。
+2. 构建URL能够显式地处理特殊字符和Unicode转义，因此你不必去处理这些。
+3. 如果你的应用不在URL根目录下(比如，在
+   ``/myapplication`` 而不在 ``/``)， :func:`~flask.url_for` 将会适当地替你处理好。
 
 
 HTTP方法
 ````````````
 
-HTTP (the protocol web applications are speaking) knows different methods for
-accessing URLs.  By default, a route only answers to `GET` requests, but that
-can be changed by providing the `methods` argument to the
-:meth:`~flask.Flask.route` decorator.  Here are some examples::
+HTTP (也就说web应用协议)有不同的方法来访问URLs。默认情况下，路由只会响应 `GET` 请求，
+但是能够通过给 :meth:`~flask.Flask.route` 装饰器提供 `methods` 参数来改变。这里是些例子::
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -262,92 +220,65 @@ can be changed by providing the `methods` argument to the
         else:
             show_the_login_form()
 
-If `GET` is present, `HEAD` will be added automatically for you.  You
-don't have to deal with that.  It will also make sure that `HEAD` requests
-are handled as the `HTTP RFC`_ (the document describing the HTTP
-protocol) demands, so you can completely ignore that part of the HTTP
-specification.  Likewise, as of Flask 0.6, `OPTIONS` is implemented for you
-automatically as well.
+如果使用 `GET` 方法，`HEAD`方法 将会自动添加进来。你不必处理它们。也能确保 `HEAD` 请求
+会按照 `HTTP RFC`_ (文档在HTTP协议里面描述) 要求来处理， 因此你完全可以忽略这部分HTTP规范。
+同样地，自从Flask0.6后，`OPTIONS`也能自动为你处理。
 
-You have no idea what an HTTP method is?  Worry not, here is a quick
-introduction to HTTP methods and why they matter:
+也许你并不清楚HTTP方法是什么？别担心，这里有一个HTTP方法的快速入门以及为什么它们重要：
 
-The HTTP method (also often called "the verb") tells the server what the
-clients wants to *do* with the requested page.  The following methods are
-very common:
+HTTP方法（通常也称为“谓词”）告诉服务器客户端想要对请求的页面 *做* 什么。下面这些方法是比较常见的：
 
 `GET`
-    The browser tells the server to just *get* the information stored on
-    that page and send it.  This is probably the most common method.
+    浏览器通知服务器只 *获取* 页面上的信息并且发送回来。这可能是最常用的方法。 
 
 `HEAD`
-    The browser tells the server to get the information, but it is only
-    interested in the *headers*, not the content of the page.  An
-    application is supposed to handle that as if a `GET` request was
-    received but to not deliver the actual content.  In Flask you don't
-    have to deal with that at all, the underlying Werkzeug library handles
-    that for you.
+    浏览器告诉服务器获取信息，但是只对 *头信息* 感兴趣，不需要整个页面的内容。
+    应用应该处理起来像接收到一个 `GET` 请求但是不传递实际内容。在Flask中你完全不需要处理它，
+    底层的Werkzeug库会为你处理的。
 
 `POST`
-    The browser tells the server that it wants to *post* some new
-    information to that URL and that the server must ensure the data is
-    stored and only stored once.  This is how HTML forms usually
-    transmit data to the server.
+    浏览器通知服务器它要在URL上 *提交*一些信息，服务器必须保证数据被存储且只存储一次。
+    这是HTML表单通常发送数据到服务器的方法。
 
 `PUT`
-    Similar to `POST` but the server might trigger the store procedure
-    multiple times by overwriting the old values more than once.  Now you
-    might be asking why this is useful, but there are some good reasons
-    to do it this way.  Consider that the connection is lost during
-    transmission: in this situation a system between the browser and the
-    server might receive the request safely a second time without breaking
-    things.  With `POST` that would not be possible because it must only
-    be triggered once.
+    同 `POST` 类似，但是服务器可能触发了多次存储过程，多次覆盖掉旧值。现在你就会问这有什么用，
+    有许多理由需要如此去做。考虑下在传输过程中连接丢失：在这种情况下浏览器 和服务器之间的系统可能安全地第二次接收请求，而不破坏其它东西。对于 `POST` 是不可能实现的，因为
+    它只会被触发一次。 
 
 `DELETE`
-    Remove the information at the given location.
+    移除给定位置的信息。
 
 `OPTIONS`
-    Provides a quick way for a client to figure out which methods are
-    supported by this URL.  Starting with Flask 0.6, this is implemented
-    for you automatically.
+    给客户端提供一个快速的途径来指出这个URL支持哪些HTTP方法。从Flask 0.6开始，自动实现了它。
 
-Now the interesting part is that in HTML4 and XHTML1, the only methods a
-form can submit to the server are `GET` and `POST`.  But with JavaScript
-and future HTML standards you can use the other methods as well.  Furthermore
-HTTP has become quite popular lately and browsers are no longer the only
-clients that are using HTTP. For instance, many revision control system
-use it.
+现在比较有兴趣的是在HTML4和XHTML1，表单只能以 `GET` 和 `POST` 方法来提交到服务器。在JavaScript和以后的
+HTML标准中也能使用其它的方法。同时，HTTP最近变得十分流行，浏览器不再是唯一使用HTTP的客户端。比如，许多
+版本控制系统使用HTTP。 
 
 .. _HTTP RFC: http://www.ietf.org/rfc/rfc2068.txt
 
 静态文件
 ------------
 
-Dynamic web applications also need static files.  That's usually where
-the CSS and JavaScript files are coming from.  Ideally your web server is
-configured to serve them for you, but during development Flask can do that
-as well.  Just create a folder called `static` in your package or next to
-your module and it will be available at `/static` on the application.
+动态的web应用同样需要静态文件。CSS和JavaScript文件通常来源于此。理想情况下，
+你的web服务器已经配置好为它们服务，然而在开发过程中Flask能够做到。
+只要在你的包中或模块旁边创建一个名为 `static` 的文件夹，在应用中使用 `/static` 即可访问。
 
-To generate URLs for static files, use the special ``'static'`` endpoint name::
+给静态文件生成 URL ，使用特殊的 ``'static'`` 端点名::
 
     url_for('static', filename='style.css')
 
-The file has to be stored on the filesystem as ``static/style.css``.
+这个文件应该存储在文件系统上称为 ``static/style.css``。
 
 渲染模板
 -------------------
 
-Generating HTML from within Python is not fun, and actually pretty
-cumbersome because you have to do the HTML escaping on your own to keep
-the application secure.  Because of that Flask configures the `Jinja2
-<http://jinja.pocoo.org/2/>`_ template engine for you automatically.
+在Python中生成HTML并不好玩，实际上是相当繁琐的，因为你必须自行做好HTML转义以保持应用程序的安全。
+由于这个原因，Flask自动为你配置好 `Jinja2
+<http://jinja.pocoo.org/2/>`_ 模版。
 
-To render a template you can use the :func:`~flask.render_template`
-method.  All you have to do is provide the name of the template and the
-variables you want to pass to the template engine as keyword arguments.
-Here's a simple example of how to render a template::
+你可以使用方法 :func:`~flask.render_template` 来渲染模版。所有你需要做的就是提供模版的名称以及
+你想要作为关键字参数传入模板的变量。这里有个渲染模版的简单例子::
 
     from flask import render_template
 
@@ -356,9 +287,7 @@ Here's a simple example of how to render a template::
     def hello(name=None):
         return render_template('hello.html', name=name)
 
-Flask will look for templates in the `templates` folder.  So if your
-application is a module, this folder is next to that module, if it's a
-package it's actually inside your package:
+Flask将会在 `templates` 文件夹中寻找模版。因此如果你的应用是个模块，这个文件 夹在模块的旁边，如果它是一个包，那么这个文件夹在你的包里面:
 
 **Case 1**: a module::
 
@@ -373,11 +302,10 @@ package it's actually inside your package:
         /templates
             /hello.html
 
-For templates you can use the full power of Jinja2 templates.  Head over
-to the the official `Jinja2 Template Documentation
-<http://jinja.pocoo.org/2/documentation/templates>`_ for more information.
+对于模板，你可以使用Jinja2模板的全部能力。详细信息查看官方的 `Jinja2 Template Documentation
+<http://jinja.pocoo.org/2/documentation/templates>`_ 。
 
-Here is an example template:
+这里是一个模版的例子：
 
 .. sourcecode:: html+jinja
 
@@ -389,23 +317,17 @@ Here is an example template:
       <h1>Hello World!</h1>
     {% endif %}
 
-Inside templates you also have access to the :class:`~flask.request`,
-:class:`~flask.session` and :class:`~flask.g` [#]_ objects
-as well as the :func:`~flask.get_flashed_messages` function.
+在模版中你也可以使用 :class:`~flask.request`,
+:class:`~flask.session` 和 :class:`~flask.g` [#]_ 对象，也能使用函数 :func:`~flask.get_flashed_messages` 。
 
-Templates are especially useful if inheritance is used.  If you want to
-know how that works, head over to the :ref:`template-inheritance` pattern
-documentation.  Basically template inheritance makes it possible to keep
-certain elements on each page (like header, navigation and footer).
+模版继承是十分有用的。如果想要知道模版继承如何工作的话，请阅读文档
+:ref:`template-inheritance` 。基本的模版继承使得某些特定元素（如标题，导航和页脚）在每一页成为可能。
 
-Automatic escaping is enabled, so if `name` contains HTML it will be escaped
-automatically.  If you can trust a variable and you know that it will be
-safe HTML (for example because it came from a module that converts wiki
-markup to HTML) you can mark it as safe by using the
-:class:`~jinja2.Markup` class or by using the ``|safe`` filter in the
-template.  Head over to the Jinja 2 documentation for more examples.
+自动转义是开启的，因此如果 `name` 包含HTML，它将会自动转义。如果你信任一个变量，并且你知道它是安全的
+（例如一个模块把wiki标记转换到HTML），你可以用 :class:`~jinja2.Markup` 类或 ``|safe`` 过滤器在模板中标记它是安全的。
+在Jinja 2文档中，你会见到更多例子。
 
-Here is a basic introduction to how the :class:`~jinja2.Markup` class works:
+这是一个 :class:`~jinja2.Markup` 类如何工作的基本介绍：
 
 >>> from flask import Markup
 >>> Markup('<strong>Hello %s!</strong>') % '<blink>hacker</blink>'
@@ -417,15 +339,11 @@ u'Marked up \xbb HTML'
 
 .. versionchanged:: 0.5
 
-   Autoescaping is no longer enabled for all templates.  The following
-   extensions for templates trigger autoescaping: ``.html``, ``.htm``,
-   ``.xml``, ``.xhtml``.  Templates loaded from a string will have
-   autoescaping disabled.
+   自动转义不再在所有模版中启用。模板中下列后缀的文件会触发自动转义：``.html``, ``.htm``,
+   ``.xml``, ``.xhtml``。从字符串加载的模板会禁用自动转义。 
 
-.. [#] Unsure what that :class:`~flask.g` object is? It's something in which
-   you can store information for your own needs, check the documentation of
-   that object (:class:`~flask.g`) and the :ref:`sqlite3` for more
-   information.
+.. [#] 不知道 :class:`~flask.g` 对象是什么？它是可以按你的需求存储信息的东西，更多的信息查看 :class:`~flask.g` 文档以及 
+   :ref:`sqlite3`。
 
 
 接收请求数据
@@ -832,19 +750,16 @@ can do it like this::
 部署到Web服务器
 -------------------------
 
-Ready to deploy your new Flask app?  To wrap up the quickstart, you can
-immediately deploy to a hosted platform, all of which offer a free plan for
-small projects:
+准备好部署你的新Flask应用？你可以立即部署到托管平台来完成快速入门，以下是向小项目提供免费的方案:
 
 - `Deploying Flask on Heroku <http://devcenter.heroku.com/articles/python>`_
 - `Deploying WSGI on dotCloud <http://docs.dotcloud.com/services/python/>`_
   with `Flask-specific notes <http://flask.pocoo.org/snippets/48/>`_
 
-Other places where you can host your Flask app:
+你可以托管Flask应用的其它选择：
 
 - `Deploying Flask on Webfaction <http://flask.pocoo.org/snippets/65/>`_
 - `Deploying Flask on Google App Engine <https://github.com/kamalgill/flask-appengine-template>`_
 - `Sharing your Localhost Server with Localtunnel <http://flask.pocoo.org/snippets/89/>`_
 
-If you manage your own hosts and would like to host yourself, see the chapter
-on :ref:`deployment`.
+如果你管理你自己的主机并且想要自己运行，请参看 :ref:`deployment`。
