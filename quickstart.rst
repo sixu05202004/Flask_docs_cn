@@ -349,44 +349,29 @@ u'Marked up \xbb HTML'
 接收请求数据
 ----------------------
 
-For web applications it's crucial to react to the data a client sent to
-the server.  In Flask this information is provided by the global
-:class:`~flask.request` object.  If you have some experience with Python
-you might be wondering how that object can be global and how Flask
-manages to still be threadsafe.  The answer is context locals:
+对于web应用来说，对客户端发送给服务器的数据做出反应至关重要。在Flask中由全局对象 :class:`~flask.request` 
+来提供这些信息。如果你有一定的Python经验，你会好奇这个对象怎么可能是全局的，并且Flask是怎么还能保证线程安全。
+答案是上下文作用域:
 
 
 .. _context-locals:
 
-上下文
+局部上下文
 ``````````````
 
-.. admonition:: Insider Information
+.. admonition:: 内幕消息
+   
+   如果你想要了解它是如何工作以及如何用它实现测试，请阅读本节，否则请跳过本节。
 
-   If you want to understand how that works and how you can implement
-   tests with context locals, read this section, otherwise just skip it.
+Flask中的某些对象是全局对象，但不是通常的类型。这些对象实际上是给定上下文 的局部对象的代理。
+虽然很拗口，但实际上很容易理解。
 
-Certain objects in Flask are global objects, but not of the usual kind.
-These objects are actually proxies to objects that are local to a specific
-context.  What a mouthful.  But that is actually quite easy to understand.
+想象下线程处理的上下文。一个请求传入，web服务器决定产生一个新线程(或者其它东西，
+底层对象比线程更有能力处理并发系统)。当Flask开始它内部请求处理时，它认定当前线程是活动的上下文并绑定当前的应用和WSGI环境到那 个上下文（线程）。它以一种智能的方法来实现，以致一个应用可以调用另一个应用而不会中断。
 
-Imagine the context being the handling thread.  A request comes in and the
-web server decides to spawn a new thread (or something else, the
-underlying object is capable of dealing with concurrency systems other
-than threads).  When Flask starts its internal request handling it
-figures out that the current thread is the active context and binds the
-current application and the WSGI environments to that context (thread).
-It does that in an intelligent way so that one application can invoke another
-application without breaking.
-
-So what does this mean to you?  Basically you can completely ignore that
-this is the case unless you are doing something like unit testing.  You
-will notice that code which depends on a request object will suddenly break
-because there is no request object.  The solution is creating a request
-object yourself and binding it to the context.  The easiest solution for
-unit testing is to use the :meth:`~flask.Flask.test_request_context`
-context manager.  In combination with the `with` statement it will bind a
-test request so that you can interact with it.  Here is an example::
+所以这对你意味着什么了？如果你是做一些类似单元测试的事情否则基本你可以完全忽略这种情况。
+你会发现依赖于请求对象的代码会突然中断，因为没有请求对象。解决方案就是自己创建一个请求并把它跟上下文绑定。
+针对单元测试最早的解决方案是使用 :meth:`~flask.Flask.test_request_context` 上下文管理器。结合 `with` 声明，它将绑定一个测试请求来进行交互。这里是一个例子::
 
     from flask import request
 
@@ -396,8 +381,7 @@ test request so that you can interact with it.  Here is an example::
         assert request.path == '/hello'
         assert request.method == 'POST'
 
-The other possibility is passing a whole WSGI environment to the
-:meth:`~flask.Flask.request_context` method::
+另一个可能性就是传入整个WSGI环境到 :meth:`~flask.Flask.request_context` 方法::
 
     from flask import request
 
@@ -407,18 +391,13 @@ The other possibility is passing a whole WSGI environment to the
 请求对象
 ``````````````````
 
-The request object is documented in the API section and we will not cover
-it here in detail (see :class:`~flask.request`). Here is a broad overview of
-some of the most common operations.  First of all you have to import it from
-the `flask` module::
+请求对象在API章节中描述，这里我们不再详细涉及(请看 :class:`~flask.request`)。这里对一些最常见的操作进行概述。
+首先你需要从 `flask` 模块中导入它::
 
     from flask import request
 
-The current request method is available by using the
-:attr:`~flask.request.method` attribute.  To access form data (data
-transmitted in a `POST` or `PUT` request) you can use the
-:attr:`~flask.request.form` attribute.  Here is a full example of the two
-attributes mentioned above::
+当前请求的方法可以用 :attr:`~flask.request.method` 属性来访问。你可以用 :attr:`~flask.request.form` 属性来访问表单数据
+(数据在 `POST` 或者 `PUT`中传输)。这里是上面提及到两种属性的完整的例子::
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
@@ -433,40 +412,30 @@ attributes mentioned above::
         # was GET or the credentials were invalid
         return render_template('login.html', error=error)
 
-What happens if the key does not exist in the `form` attribute?  In that
-case a special :exc:`KeyError` is raised.  You can catch it like a
-standard :exc:`KeyError` but if you don't do that, a HTTP 400 Bad Request
-error page is shown instead.  So for many situations you don't have to
-deal with that problem.
+如果在 `form` 属性中不存在上述键值会发生些什么？在这种情况下会触发一个特别的 :exc:`KeyError`。
+你可以像捕获标准的 :exc:`KeyError` 来捕获它，如果你不这样去做，会显示一个HTTP 400 Bad Request 错误页面。
+所以很多情况下你不需要处理这个问题。
 
-To access parameters submitted in the URL (``?key=value``) you can use the
-:attr:`~flask.request.args` attribute::
+你可以用 :attr:`~flask.request.args` 属性来接收在URL(``?key=value``)中提交的参数::
 
     searchword = request.args.get('key', '')
 
-We recommend accessing URL parameters with `get` or by catching the
-`KeyError` because users might change the URL and presenting them a 400
-bad request page in that case is not user friendly.
+我们推荐使用 `get` 来访问URL参数或捕获 `KeyError` ，因为用户可能会修改URL， 
+向他们显示一个400 bad request页面不是用户友好的。
 
-For a full list of methods and attributes of the request object, head over
-to the :class:`~flask.request` documentation.
+想获取请求对象的完整的方法和属性清单，请参阅 :class:`~flask.request` 的文档。
 
 
 文件上传
 ````````````
 
-You can handle uploaded files with Flask easily.  Just make sure not to
-forget to set the ``enctype="multipart/form-data"`` attribute on your HTML
-form, otherwise the browser will not transmit your files at all.
+你能够很容易地用Flask处理文件上传。只要确保在你的HTML表单中不要忘记设置属性 ``enctype="multipart/form-data"`，
+否则浏览器将不传送文件。
 
-Uploaded files are stored in memory or at a temporary location on the
-filesystem.  You can access those files by looking at the
-:attr:`~flask.request.files` attribute on the request object.  Each
-uploaded file is stored in that dictionary.  It behaves just like a
-standard Python :class:`file` object, but it also has a
-:meth:`~werkzeug.datastructures.FileStorage.save` method that allows you to store that
-file on the filesystem of the server.  Here is a simple example showing how
-that works::
+上传的文件是存储在内存或者文件系统上一个临时位置。你可以通过请求对象中 :attr:`~flask.request.files` 属性访问这些文件。
+每个上传的文件都会存储在这个属性字典里。它表现得像一个标准的Python :class:`file` 对象，但是它同样具有 
+:meth:`~werkzeug.datastructures.FileStorage.save` 方法，该方法允许你存储文件在服务器的文件系统上。
+这儿是一个简单的例子展示如何工作的::
 
     from flask import request
 
@@ -477,13 +446,9 @@ that works::
             f.save('/var/www/uploads/uploaded_file.txt')
         ...
 
-If you want to know how the file was named on the client before it was
-uploaded to your application, you can access the
-:attr:`~werkzeug.datastructures.FileStorage.filename` attribute.  However please keep in
-mind that this value can be forged so never ever trust that value.  If you
-want to use the filename of the client to store the file on the server,
-pass it through the :func:`~werkzeug.utils.secure_filename` function that
-Werkzeug provides for you::
+如果你想要知道在上传到你的应用之前在客户端的文件名称，你可以访问 :attr:`~werkzeug.datastructures.FileStorage.filename` 
+属性。但请记住永远不要信任这个值，因为这个值可以伪造。如果你想要使用客户端的文件名来在服务器上存储文件，
+把它传递到Werkzeug提供给你的 :func:`~werkzeug.utils.secure_filename` 函数::
 
     from flask import request
     from werkzeug import secure_filename
@@ -495,20 +460,16 @@ Werkzeug provides for you::
             f.save('/var/www/uploads/' + secure_filename(f.filename))
         ...
 
-For some better examples, checkout the :ref:`uploading-files` pattern.
+一些更好的例子，请查看 :ref:`uploading-files` 。
 
 Cookies
 ```````
 
-To access cookies you can use the :attr:`~flask.Request.cookies`
-attribute.  To set cookies you can use the
-:attr:`~flask.Response.set_cookie` method of response objects.  The
-:attr:`~flask.Request.cookies` attribute of request objects is a
-dictionary with all the cookies the client transmits.  If you want to use
-sessions, do not use the cookies directly but instead use the
-:ref:`sessions` in Flask that add some security on top of cookies for you.
+你可以用 :attr:`~flask.Request.cookies` 属性来访问cookies。你能够用响应对象的 :attr:`~flask.Response.set_cookie`
+来设置cookies。请求对象中的 :attr:`~flask.Request.cookies` 属性是一个客户端发送所有的cookies的字典。
+如果你要使用会话(sessions)，请不要直接使用cookies相反用Flask中的 :ref:`sessions`，Flask已经在cookies上增加了一些安全细节。
 
-Reading cookies::
+读取cookies::
 
     from flask import request
 
@@ -518,7 +479,7 @@ Reading cookies::
         # use cookies.get(key) instead of cookies[key] to not get a
         # KeyError if the cookie is missing.
 
-Storing cookies::
+存储cookies::
 
     from flask import make_response
 
@@ -528,23 +489,21 @@ Storing cookies::
         resp.set_cookie('username', 'the username')
         return resp
 
-Note that cookies are set on response objects.  Since you normally
-just return strings from the view functions Flask will convert them into
-response objects for you.  If you explicitly want to do that you can use
-the :meth:`~flask.make_response` function and then modify it.
+注意cookies是在响应对象中被设置。由于通常只是从视图函数返回字符串， Flask会将其转换为响应对象。
+如果你要显式地这么做，你可以使用 :meth:`~flask.make_response` 函数接着修改它。
 
+有时候你可能要在响应对象不存在的地方设置cookie。利用 :ref:`deferred-callbacks` 模式使得这种情况成为可能。
 Sometimes you might want to set a cookie at a point where the response
 object does not exist yet.  This is possible by utilizing the
 :ref:`deferred-callbacks` pattern.
 
-For this also see :ref:`about-responses`.
+为此也可以参阅 :ref:`about-responses`。
 
 重定向和错误
 --------------------
 
-To redirect a user to somewhere else you can use the
-:func:`~flask.redirect` function. To abort a request early with an error
-code use the :func:`~flask.abort` function.  Here an example how this works::
+你能够用 :func:`~flask.redirect` 函数重定向用户到其它地方。能够用 :func:`~flask.abort` 函数提前中断一个请求并带有一个错误代码。
+这里是一个它们如何工作的 例子::
 
     from flask import abort, redirect, url_for
 
@@ -557,13 +516,10 @@ code use the :func:`~flask.abort` function.  Here an example how this works::
         abort(401)
         this_is_never_executed()
 
-This is a rather pointless example because a user will be redirected from
-the index to a page they cannot access (401 means access denied) but it
-shows how that works.
+这是一个相当无意义的例子因为用户会从主页重定向到一个不能访问的页面（401意 味着禁止访问），
+但是它说明了重定向如何工作。
 
-By default a black and white error page is shown for each error code.  If
-you want to customize the error page, you can use the
-:meth:`~flask.Flask.errorhandler` decorator::
+默认情况下，每个错误代码会显示一个黑白错误页面。如果你想定制错误页面，可以使用 :meth:`~flask.Flask.errorhandler` 装饰器::
 
     from flask import render_template
 
@@ -571,37 +527,27 @@ you want to customize the error page, you can use the
     def page_not_found(error):
         return render_template('page_not_found.html'), 404
 
-Note the ``404`` after the :func:`~flask.render_template` call.  This
-tells Flask that the status code of that page should be 404 which means
-not found.  By default 200 is assumed which translates to: all went well.
+注意到 ``404`` 是在 :func:`~flask.render_template 调用之后。告诉Flask该页的错误代码应是 404 ，
+即没有找到。默认的200被假定为：一切正常。
 
 .. _about-responses:
 
 关于响应
 ---------------
 
-The return value from a view function is automatically converted into a
-response object for you.  If the return value is a string it's converted
-into a response object with the string as response body, an ``200 OK``
-error code and a ``text/html`` mimetype.  The logic that Flask applies to
-converting return values into response objects is as follows:
+一个视图函数的返回值会被自动转换为一个响应对象。如果返回值是一个字符串，它被转换成
+一个响应主体是该字符串，错误代码为 ``200 OK`` ，媒体类型为 ``text/html`` 的响应对象。
+Flask把返回值转换成响应对象的逻辑如下：
 
-1.  If a response object of the correct type is returned it's directly
-    returned from the view.
-2.  If it's a string, a response object is created with that data and the
-    default parameters.
-3.  If a tuple is returned the items in the tuple can provide extra
-    information.  Such tuples have to be in the form ``(response, status,
-    headers)`` where at least one item has to be in the tuple.  The
-    `status` value will override the status code and `headers` can be a
-    list or dictionary of additional header values.
-4.  If none of that works, Flask will assume the return value is a
-    valid WSGI application and convert that into a response object.
+1.  如果返回的是一个合法的响应对象，它会被从视图直接返回。
+2.  如果返回的是一个字符串，响应对象会用字符串数据和默认参数创建。
+3.  如果返回的是一个元组而且元组中元素能够提供额外的信息。这样的元组必须是 ``(response, status,
+    headers)`` 形式且至少含有一个元素。 `status` 值将会覆盖状态代码，`headers` 可以是一个列表或额外的消息头值字典。
+4.  如果上述条件均不满足，Flask会假设返回值是一个合法的WSGI应用程序，并转换为一个请求对象。
 
-If you want to get hold of the resulting response object inside the view
-you can use the :func:`~flask.make_response` function.
+如果你想要获取在视图中得到的响应对象，你可以用函数 :func:`~flask.make_response` 。
 
-Imagine you have a view like this:
+想象你有这样一个视图:
 
 .. sourcecode:: python
 
@@ -609,9 +555,7 @@ Imagine you have a view like this:
     def not_found(error):
         return render_template('error.html'), 404
 
-You just need to wrap the return expression with
-:func:`~flask.make_response` and get the result object to modify it, then
-return it:
+你只需要用 :func:`~flask.make_response` 封装返回表达式，获取结果对象并修改，然后返回它：
 
 .. sourcecode:: python
 
@@ -626,15 +570,11 @@ return it:
 会话
 --------
 
-In addition to the request object there is also a second object called
-:class:`~flask.session` which allows you to store information specific to a
-user from one request to the next.  This is implemented on top of cookies
-for you and signs the cookies cryptographically.  What this means is that
-the user could look at the contents of your cookie but not modify it,
-unless they know the secret key used for signing.
+除了请求对象，还有第二个称为 :class:`~flask.session` 对象允许你在不同请求间存储特定用户的信息。
+这是在cookies的基础上实现的，并且在cookies中使用加密的签名。这意味着用户可以查看你cookie的内容，
+但是不能修改它，除非它知道签名的密钥。
 
-In order to use sessions you have to set a secret key.  Here is how
-sessions work::
+要使用会话，你需要设置一个密钥。这里介绍会话如何工作::
 
     from flask import Flask, session, redirect, url_for, escape, request
 
@@ -667,44 +607,31 @@ sessions work::
     # set the secret key.  keep this really secret:
     app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-The :func:`~flask.escape` mentioned here does escaping for you if you are
-not using the template engine (as in this example).
+这里提到的 :func:`~flask.escape` 可以再你不使用模板引擎的时候做转义（如同本例）。
 
-.. admonition:: How to generate good secret keys
+.. admonition:: 怎样产生一个好的密钥
 
-   The problem with random is that it's hard to judge what is truly random.  And
-   a secret key should be as random as possible.  Your operating system
-   has ways to generate pretty random stuff based on a cryptographic
-   random generator which can be used to get such a key:
+   随机的问题在于很难判断什么是真随机。一个密钥应该足够随机。你的操作系统 可以基于一个密码随机生成器来生成漂亮的随机值，这个值可以用来做密钥:
 
    >>> import os
    >>> os.urandom(24)
    '\xfd{H\xe5<\x95\xf9\xe3\x96.5\xd1\x01O<!\xd5\xa2\xa0\x9fR"\xa1\xa8'
 
-   Just take that thing and copy/paste it into your code and you're done.
+   把这个值复制粘贴到你的代码，你就搞定了密钥。
 
-A note on cookie-based sessions: Flask will take the values you put into the
-session object and serialize them into a cookie.  If you are finding some
-values do not persist across requests, cookies are indeed enabled, and you are
-not getting a clear error message, check the size of the cookie in your page
-responses compared to the size supported by web browsers.
+使用基于cookie的会话需注意: Flask会将你放进会话对象的值序列化到cookie。如果你试图寻找一个跨请求不能存留的值， 
+cookies确实是启用的，并且你不会获得明确的错误信息，检查你页面请求中cookie的大小，并与web浏览器所支持的大小对比。
 
 
 消息闪烁
 ----------------
 
-Good applications and user interfaces are all about feedback.  If the user
-does not get enough feedback they will probably end up hating the
-application.  Flask provides a really simple way to give feedback to a
-user with the flashing system.  The flashing system basically makes it
-possible to record a message at the end of a request and access it on the next
-(and only the next) request.  This is usually combined with a layout
-template to expose the message.
+好的应用和用户界面全部是关于反馈。如果用户得不到足够的反馈，他们可能会变得讨厌这个应用。Flask提供了一个
+真正的简单的方式来通过消息闪现系统给用户反馈。消息闪现系统基本上使得在请求结束时记录信息并在下一个
+（且仅在下一个）请求中访问。通常结合模板布局来显示消息。
 
-To flash a message use the :func:`~flask.flash` method, to get hold of the
-messages you can use :func:`~flask.get_flashed_messages` which is also
-available in the templates.  Check out the :ref:`message-flashing-pattern`
-for a full example.
+使用 :func:`~flask.flash` 方法来闪现一个消息，使用 :func:`~flask.get_flashed_messages` 能够获取消息，
+:func:`~flask.get_flashed_messages` 也能用于模版中。针对一个完整的例子请查阅 :ref:`message-flashing-pattern`。
 
 日志
 -------
