@@ -638,36 +638,26 @@ cookies确实是启用的，并且你不会获得明确的错误信息，检查�
 
 .. versionadded:: 0.3
 
-Sometimes you might be in a situation where you deal with data that
-should be correct, but actually is not.  For example you may have some client-side
-code that sends an HTTP request to the server but it's obviously
-malformed.  This might be caused by a user tampering with the data, or the
-client code failing.  Most of the time it's okay to reply with ``400 Bad
-Request`` in that situation, but sometimes that won't do and the code has
-to continue working.
+有时候你会处于一种你处理的数据应该是正确的，然而实际上并不正确的状况。比如你可能有一些客户端代码，
+代码向服务器发送一个HTTP请求但是显然它是畸形的。这可能是由于用户篡改数据，或客户端代码失败。
+大部分时候针对这一情况返回 ``400 Bad Request`` 就可以了，但是有时候不行因为代码必须继续工作。
 
-You may still want to log that something fishy happened.  This is where
-loggers come in handy.  As of Flask 0.3 a logger is preconfigured for you
-to use.
+你可能仍然想要记录发生什么不正常事情。这时候日志就派上用处。从Flask0.3开始日志记录是预先配置好的。
 
-Here are some example log calls::
+这里有一些日志调用的例子::
 
     app.logger.debug('A value for debugging')
     app.logger.warning('A warning occurred (%d apples)', 42)
     app.logger.error('An error occurred')
 
-The attached :attr:`~flask.Flask.logger` is a standard logging
-:class:`~logging.Logger`, so head over to the official `logging
-documentation <http://docs.python.org/library/logging.html>`_ for more
-information.
+附带的 :attr:`~flask.Flask.logger` 是一个标准的日志类 :class:`~logging.Logger` ，因此更多的信息请
+查阅官方文档 `logging
+documentation <http://docs.python.org/library/logging.html>`_。
 
-Hooking in WSGI Middlewares
+整合WSGI中间件
 ---------------------------
 
-If you want to add a WSGI middleware to your application you can wrap the
-internal WSGI application.  For example if you want to use one of the
-middlewares from the Werkzeug package to work around bugs in lighttpd, you
-can do it like this::
+如果你想给你的应用添加WSGI中间件，你可以封装内部WSGI应用。例如如果你想使用Werkzeug包中的某个中间件来应付lighttpd中的bugs，你可以这样做::
 
     from werkzeug.contrib.fixers import LighttpdCGIRootFix
     app.wsgi_app = LighttpdCGIRootFix(app.wsgi_app)

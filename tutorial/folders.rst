@@ -1,10 +1,9 @@
 .. _tutorial-folders:
 
-Step 0: Creating The Folders
+Step 0: 创建文件夹
 ============================
 
-Before we get started, let's create the folders needed for this
-application::
+在我们开始之前，让我们为这个应用创建需要的文件夹::
 
     /flaskr
         /static
@@ -18,6 +17,6 @@ This is the place where css and javascript files go.  Inside the
 `templates` folder Flask will look for `Jinja2`_ templates.  The
 templates you create later in the tutorial will go in this directory.
 
-Continue with :ref:`tutorial-schema`.
+继续浏览 :ref:`tutorial-schema` 。
 
 .. _Jinja2: http://jinja.pocoo.org/2/
