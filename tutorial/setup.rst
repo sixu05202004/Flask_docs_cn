@@ -1,17 +1,13 @@
 .. _tutorial-setup:
 
-Step 2: Application Setup Code
+Step 2: 应用设置代码
 ==============================
 
-Now that we have the schema in place we can create the application module.
-Let's call it `flaskr.py` inside the `flaskr` folder.  For starters we
-will add the imports we will need as well as the config section.  For
-small applications it's a possibility to drop the configuration directly
-into the module which we will be doing here.  However a cleaner solution
-would be to create a separate `.ini` or `.py` file and load that or import
-the values from there.
+现在我们已经有了数据库模式了，我们可以创建应用的模块了。让我们称为 `flaskr.py` ，并
+放置于 `flaskr` 文件夹中。对于初学者来说，我们会添加所有需要的导入像配置的章节中 一样。对于小应用，直接把配置放在主模块里，正如我们现在要做的一样，是可行的。然而一个
+更干净的解决方案就是单独创建 `.ini` 或者 `.py` 文件接着加载或者导入里面的值。
 
-In `flaskr.py`::
+在 `flaskr.py` 中::
 
     # all the imports
     import sqlite3
@@ -25,66 +21,49 @@ In `flaskr.py`::
     USERNAME = 'admin'
     PASSWORD = 'default'
 
-Next we can create our actual application and initialize it with the
-config from the same file, in `flaskr.py`::
+下一步我们能够创建真正的应用，接着用同一文件(在 `flaskr.py` 中)中的配置初始化::
 
     # create our little application :)
     app = Flask(__name__)
     app.config.from_object(__name__)
 
-:meth:`~flask.Config.from_object` will look at the given object (if it's a
-string it will import it) and then look for all uppercase variables
-defined there.  In our case, the configuration we just wrote a few lines
-of code above.  You can also move that into a separate file.
+:meth:`~flask.Config.from_object` 将会寻找给定的对象(如果它是一个字符串，则会导入它)，
+搜寻里面定义的全部大写的变量。在我们的这种情况中，配置文件就是我们上面写的几行代码。
+你也可以将他们分别存储到多个文件。
 
-Usually, it is a good idea to load a configuration from a configurable
-file. This is what :meth:`~flask.Config.from_envvar` can do, replacing the
-:meth:`~flask.Config.from_object` line above::
+通常，从配置文件中加载配置是一个好的主意。这是 :meth:`~flask.Config.from_envvar` 所做的，
+用它替换上面的 :meth:`~flask.Config.from_object` ::
 
     app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
-That way someone can set an environment variable called
-:envvar:`FLASKR_SETTINGS` to specify a config file to be loaded which will then
-override the default values. The silent switch just tells Flask to not complain
-if no such environment key is set.
+这种方法我们可以设置一个名为 :envvar:`FLASKR_SETTINGS` 环境变量来设定一个配置文件载入后是否覆盖默认值。
+静默开关告诉Flask不去关心这个环境变量键值是否存在。
 
-The `secret_key` is needed to keep the client-side sessions secure.
-Choose that key wisely and as hard to guess and complex as possible.  The
-debug flag enables or disables the interactive debugger.  *Never leave
-debug mode activated in a production system*, because it will allow users to
-execute code on the server!
+`secret_key` 是需要为了保持客户端的会话安全。明智地选择该键，使得它难以猜测，尽可能复杂。
+调试标志启用或禁用交互式调试。*决不让调试模式在生产系统中启动*，因为它将允许用户在服务器上执行代码！
 
-We also add a method to easily connect to the database specified.  That
-can be used to open a connection on request and also from the interactive
-Python shell or a script.  This will come in handy later.
+我们还添加了一个轻松地连接到指定数据库的方法，这个方法用于在请求时打开一个连接，并且在交互式Python shell 和脚本中也能使用。这对以后很方便。
 
 ::
 
     def connect_db():
         return sqlite3.connect(app.config['DATABASE'])
 
-Finally we just add a line to the bottom of the file that fires up the
-server if we want to run that file as a standalone application::
+最后如果我们想要把那个文件当做独立应用来运行，我们只需在服务器启动文件的末尾添加这一行::
 
     if __name__ == '__main__':
         app.run()
 
-With that out of the way you should be able to start up the application
-without problems.  Do this with the following command::
+如此我们便可以顺利开始运行这个应用，使用如下命令::
 
    python flaskr.py
 
-You will see a message telling you that server has started along with
-the address at which you can access it.
+你将会看到一个信息，信息提示你服务器启动的地址，这个地址你能够访问到的。
 
-When you head over to the server in your browser you will get an 404
-page not found error because we don't have any views yet.  But we will
-focus on that a little later.  First we should get the database working.
+当你在浏览器中访问服务器获得一个404页面无法找到的错误时，是因为我们还没有 任何视图。我们之后再来关注这些。首先我们应该让数据库工作起来。
 
-.. admonition:: Externally Visible Server
+.. admonition:: 外部可见的服务器
 
-   Want your server to be publicly available?  Check out the
-   :ref:`externally visible server <public-server>` section for more
-   information.
+   想要你的服务器公开可见吗？更多的信息请查阅 :ref:`externally visible server <public-server>` 。
 
-Continue with :ref:`tutorial-dbinit`.
+继续浏览 :ref:`tutorial-dbinit` 。

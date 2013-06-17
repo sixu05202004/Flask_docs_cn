@@ -1,36 +1,25 @@
 .. _tutorial-dbinit:
 
-Step 3: Creating The Database
+Step 3: 创建数据库
 =============================
 
-Flaskr is a database powered application as outlined earlier, and more
-precisely, an application powered by a relational database system.  Such
-systems need a schema that tells them how to store that information. So
-before starting the server for the first time it's important to create
-that schema.
+如前面所述，Flaskr是一个数据库驱动的应用程序，准确地来说，Flaskr是一个使用关系数据库系统的应用程序。
+这样的系统需要一个模式告诉它们如何存储信息。因此在首次启动服务器之前，创建数据库模式是很重要的。
 
-Such a schema can be created by piping the `schema.sql` file into the
-`sqlite3` command as follows::
+可以通过管道把schema.sql作为sqlite3命令的输入来创建这个模式，命令如下::
 
     sqlite3 /tmp/flaskr.db < schema.sql
 
-The downside of this is that it requires the sqlite3 command to be
-installed which is not necessarily the case on every system.  Also one has
-to provide the path to the database there which leaves some place for
-errors.  It's a good idea to add a function that initializes the database
-for you to the application.
+这种方法的缺点是需要安装sqlite3命令，而并不是每个系统都有安装。而且你必 须提供数据库的路径，否则将报错。添加一个函数来对初始化数据库是个不错的想法。
 
-If you want to do that, you first have to import the
-:func:`contextlib.closing` function from the contextlib package.  If you
-want to use Python 2.5 it's also necessary to enable the `with` statement
-first (`__future__` imports must be the very first import)::
+如果你想要这么做，首先你必须从contextlib包中导入 :func:`contextlib.closing` 函数。如果你要使用
+Python2.5有必要先启用 `with` 声明( `__future__` 导入必须先于其它的导入)::
 
     from __future__ import with_statement
     from contextlib import closing
 
-Next we can create a function called `init_db` that initializes the
-database.  For this we can use the `connect_db` function we defined
-earlier.  Just add that function below the `connect_db` function::
+接着我们可以创建一个称为 `init_db` 函数，该函数用来初始化数据库。为此我们可以使用之前定义的 `connect_db` 函数。
+只要在 `connect_db` 函数下添加这样的函数::
 
     def init_db():
         with closing(connect_db()) as db:
@@ -52,8 +41,7 @@ execute a complete script.  Finally we only have to commit the changes.
 SQLite 3 and other transactional databases will not commit unless you
 explicitly tell it to.
 
-Now it is possible to create a database by starting up a Python shell and
-importing and calling that function::
+现在可以在Python shell里创建数据库，导入并调用刚才的函数::
 
 >>> from flaskr import init_db
 >>> init_db()
@@ -64,4 +52,4 @@ importing and calling that function::
    you did call the `init_db` function and that your table names are
    correct (singular vs. plural for example).
 
-Continue with :ref:`tutorial-dbcon`
+请继续浏览 :ref:`tutorial-dbcon` 。

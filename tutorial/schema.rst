@@ -1,12 +1,10 @@
 .. _tutorial-schema:
 
-Step 1: Database Schema
+Step 1: 数据库模式
 =======================
 
-First we want to create the database schema.  For this application only a
-single table is needed and we only want to support SQLite so that is quite
-easy.  Just put the following contents into a file named `schema.sql` in
-the just created `flaskr` folder:
+首先我们要创建数据库模式。对于这个应用仅一张表就足够了，而且我们只想支持SQLite ，所以很简单。
+只要把下面的内容放入一个名为 `schema.sql` 的文件，文件置于刚才创建的 `flaskr` 文件夹中：
 
 .. sourcecode:: sql
 
@@ -17,9 +15,7 @@ the just created `flaskr` folder:
       text string not null
     );
 
-This schema consists of a single table called `entries` and each row in
-this table has an `id`, a `title` and a `text`.  The `id` is an
-automatically incrementing integer and a primary key, the other two are
-strings that must not be null.
+这个模式由一个称为 `entries` 的单表构成，在这个表中每行包含一个 `id` ，一个 `title` 和一个 `text`。
+`id` 是一个自增的整数而且是主键，其余两个为非空的字符串。
 
-Continue with :ref:`tutorial-setup`.
+继续浏览 :ref:`tutorial-setup` 。

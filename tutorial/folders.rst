@@ -9,13 +9,10 @@ Step 0: 创建文件夹
         /static
         /templates
 
-The `flaskr` folder is not a python package, but just something where we
-drop our files.  Directly into this folder we will then put our database
-schema as well as main module in the following steps.  The files inside
-the `static` folder are available to users of the application via `HTTP`.
-This is the place where css and javascript files go.  Inside the
-`templates` folder Flask will look for `Jinja2`_ templates.  The
-templates you create later in the tutorial will go in this directory.
+`flaskr` 文件夹不是一个Python的包，只是我们放置文件的地方。
+在接下来的步骤中我们会直接把数据库模式和主模块放在这个文件夹中。应用的用户可以通过
+`HTTP` 访问 `static` 文件夹中的文件。这里也是css和javascript文件存放位置。Flask将会在
+ `templates` 文件夹中寻找 `Jinja2`_ 模版。在本教程后面创建的模板将会在这个文件夹中。
 
 继续浏览 :ref:`tutorial-schema` 。
 
