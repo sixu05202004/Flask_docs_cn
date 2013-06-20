@@ -27,29 +27,20 @@ Python2.5有必要先启用 `with` 声明( `__future__` 导入必须先于其它
                 db.cursor().executescript(f.read())
             db.commit()
 
-The :func:`~contextlib.closing` helper function allows us to keep a
-connection open for the duration of the `with` block.  The
-:func:`~flask.Flask.open_resource` method of the application object
-supports that functionality out of the box, so it can be used in the
-`with` block directly.  This function opens a file from the resource
-location (your `flaskr` folder) and allows you to read from it.  We are
-using this here to execute a script on the database connection.
+:func:`~contextlib.closing` 助手函数允许我们在 `with` 块中保持数据库连接。应用对象的 :func:`~flask.Flask.open_resource` 
+方法支持函数式“即开即用”，因此它能够直接在 `with` 块中使用。这个函数从资源位置（你的 `flaskr` 文件夹）中打开一个文件，并且允许你读取它。
+我们在这里用它在数据库连接上执行一个脚本。
 
-When we connect to a database we get a connection object (here called
-`db`) that can give us a cursor.  On that cursor there is a method to
-execute a complete script.  Finally we only have to commit the changes.
-SQLite 3 and other transactional databases will not commit unless you
-explicitly tell it to.
+当我们连接到一个数据库的时候，我们得到一个连接对象（这里称为 `db` ），该连接对象能够提供我们一个游标。在这个游标上有一个执行完整脚本的方法。
+最后我们仅仅必须提交更改。SQLite3和其他事务性数据库不会提交，除非你明确告诉它。
 
 现在可以在Python shell里创建数据库，导入并调用刚才的函数::
 
 >>> from flaskr import init_db
 >>> init_db()
 
-.. admonition:: Troubleshooting
+.. admonition:: 疑难排解
 
-   If you get an exception later that a table cannot be found check that
-   you did call the `init_db` function and that your table names are
-   correct (singular vs. plural for example).
+   如果你得到一个表不能被找到的异常后，检查你确实调用了 `init_db` 函数以及你的表名是正确的(比如单数复数)。
 
 请继续浏览 :ref:`tutorial-dbcon` 。

@@ -1,53 +1,37 @@
 .. _application-errors:
 
-Logging Application Errors
+记录应用程序错误
 ==========================
 
 .. versionadded:: 0.3
 
-Applications fail, servers fail.  Sooner or later you will see an exception
-in production.  Even if your code is 100% correct, you will still see
-exceptions from time to time.  Why?  Because everything else involved will
-fail.  Here some situations where perfectly fine code can lead to server
-errors:
+应用程序会失败，服务器会失败。迟早你会看到在生产模式中的一个异常。及时你的代码是100%正确，
+你任然将会不时地看到异常。为什么？因为涉及的所有一切都会出现异常。这里是一些完美代码会导致服务器错误的情况：
 
--   the client terminated the request early and the application was still
-    reading from the incoming data.
--   the database server was overloaded and could not handle the query.
--   a filesystem is full
--   a harddrive crashed
--   a backend server overloaded
--   a programming error in a library you are using
--   network connection of the server to another system failed.
+-   客户端提前中断请求，应用仍在读取请求传入的数据。
+-   数据库服务器超载，无法处理查询。
+-   一个文件系统已满。
+-   一个硬件崩溃。
+-   后端服务器超载。
+-   您正在使用的一个库中的程序错误。
+-   到另一个系统的服务器的网络连接失败。
 
-And that's just a small sample of issues you could be facing.  So how do we
-deal with that sort of problem?  By default if your application runs in
-production mode, Flask will display a very simple page for you and log the
-exception to the :attr:`~flask.Flask.logger`.
+而这仅仅是你可能会面临的问题一个小样本。因此我们该如何处理这类的问题？默认情况下，
+如果你的应用程序在生产模式下运行的话，Flask 会显示一个非常简单的页面并记录异常到 :attr:`~flask.Flask.logger`。
 
-But there is more you can do, and we will cover some better setups to deal
-with errors.
+但是你有更多的可做的，我们将介绍一些更好的用来处理错误的设置。
 
-Error Mails
+错误邮件
 -----------
 
-If the application runs in production mode (which it will do on your
-server) you won't see any log messages by default.  Why is that?  Flask
-tries to be a zero-configuration framework.  Where should it drop the logs
-for you if there is no configuration?  Guessing is not a good idea because
-chances are, the place it guessed is not the place where the user has
-permission to create a logfile.  Also, for most small applications nobody
-will look at the logs anyways.
+如果你的应用在生产模式下运行（会在你的服务器上做），默认情况下，你不会看见任何日志消息。为什么会这样？
+Flask试图成为一个零-配置框架。如果没有配置日志会被放在哪里了？猜测不是一个好主意因为可能性太多，
+它猜测的位置可能不是一个用户有权限创建日志文件的地方。同样，对于大部分小型应用没有人会去看日志。
 
-In fact, I promise you right now that if you configure a logfile for the
-application errors you will never look at it except for debugging an issue
-when a user reported it for you.  What you want instead is a mail the
-second the exception happened.  Then you get an alert and you can do
-something about it.
+事实上，我现在向你保证，如果你给应用程序错误配置一个日志文件，你将永远不会看见它，除非在调试问题时用户向你报告。
+你需要的应是异常发生时的邮件，然后你会得到一个警报，并做些什么。
 
-Flask uses the Python builtin logging system, and it can actually send
-you mails for errors which is probably what you want.  Here is how you can
-configure the Flask logger to send you mails for exceptions::
+Flask使用Python内置的日志系统，它实际上可以发送错误邮件，这可能是你想要什么。这里是如何配置Flask日志向你发送异常邮件::
 
     ADMINS = ['yourname@example.com']
     if not app.debug:
@@ -59,49 +43,31 @@ configure the Flask logger to send you mails for exceptions::
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
 
-So what just happened?  We created a new
-:class:`~logging.handlers.SMTPHandler` that will send mails with the mail
-server listening on ``127.0.0.1`` to all the `ADMINS` from the address
-*server-error@example.com* with the subject "YourApplication Failed".  If
-your mail server requires credentials, these can also be provided.  For
-that check out the documentation for the
-:class:`~logging.handlers.SMTPHandler`.
+那么刚刚发生了什么了？我们创建一个新的 :class:`~logging.handlers.SMTPHandler` ，它将在监听 ``127.0.0.1`` 
+的邮件服务器上以发件人 *server-error@example.com* 以及主题"YourApplication Failed"向所有的 `ADMINS`  发送邮件。
+如果你的邮件服务器需要认证的话，这些功能可能提供。对此功能请查阅文档 :class:`~logging.handlers.SMTPHandler` 。
 
-We also tell the handler to only send errors and more critical messages.
-Because we certainly don't want to get a mail for warnings or other
-useless logs that might happen during request handling.
+我们同样告诉处理程序只发送错误以及更重要的信息。因为我们当然不希望收到关于一些警告或者其它一些可能发生在请求处理的日志的邮件。
 
-Before you run that in production, please also look at :ref:`logformat` to
-put more information into that error mail.  That will save you from a lot
-of frustration.
+在生产模式上运行之前，请查阅 :ref:`logformat` 把更多的信息加入到错误邮件中。这会让你少走弯路。
 
 
-Logging to a File
+记录到一个文件中
 -----------------
 
-Even if you get mails, you probably also want to log warnings.  It's a
-good idea to keep as much information around that might be required to
-debug a problem.  Please note that Flask itself will not issue any
-warnings in the core system, so it's your responsibility to warn in the
-code if something seems odd.
+即使你能收到邮件，也可能希望记录警告。当调试问题的时候，收集更多的信息是个好主意。
+请注意Flask自身核心系统是不会发出任何警告的，因此在不寻常的事情发生时发出警告就是你的责任。
 
-There are a couple of handlers provided by the logging system out of the
-box but not all of them are useful for basic error logging.  The most
-interesting are probably the following:
+在日志系统的框架外提供了一些处理程序，但它们对记录基本错误并不是都有用。最让人感兴趣的可能是下面的几个：
 
--   :class:`~logging.FileHandler` - logs messages to a file on the
-    filesystem.
--   :class:`~logging.handlers.RotatingFileHandler` - logs messages to a file
-    on the filesystem and will rotate after a certain number of messages.
--   :class:`~logging.handlers.NTEventLogHandler` - will log to the system
-    event log of a Windows system.  If you are deploying on a Windows box,
-    this is what you want to use.
--   :class:`~logging.handlers.SysLogHandler` - sends logs to a UNIX
-    syslog.
+-   :class:`~logging.FileHandler` - 在文件系统上记录信息。
+-   :class:`~logging.handlers.RotatingFileHandler` - 在文件系统上记录信息到一个文件上，
+                                                     达到一定数量的消息后会切割。
+-   :class:`~logging.handlers.NTEventLogHandler` - 记录到Windows系统中的系 统事件日志。
+                                                   如果你在Windows上做开发，这就是你想要用的。
+-   :class:`~logging.handlers.SysLogHandler` - 发送日志到UNIX系统日志。
 
-Once you picked your log handler, do like you did with the SMTP handler
-above, just make sure to use a lower setting (I would recommend
-`WARNING`)::
+当你选择了日志处理程序，像前面对SMTP处理程序做的那样，只要确保使用一个低级的设置（我推荐 `WARNING` ）::
 
     if not app.debug:
         import logging
@@ -112,22 +78,18 @@ above, just make sure to use a lower setting (I would recommend
 
 .. _logformat:
 
-Controlling the Log Format
+控制日志格式
 --------------------------
 
-By default a handler will only write the message string into a file or
-send you that message as mail.  A log record stores more information,
-and it makes a lot of sense to configure your logger to also contain that
-information so that you have a better idea of why that error happened, and
-more importantly, where it did.
+默认情况下的处理程序将只写消息字符串到一个文件，或向您发送该消息作为邮件。一个日志记 录应存储更多的信息，这使得配置你的日志记录器包含那些信息很重要，如此你会对错误发生的原因，
+还有更重要的：错误在哪发生，有更好的了解。
 
-A formatter can be instantiated with a format string.  Note that
-tracebacks are appended to the log entry automatically.  You don't have to
-do that in the log formatter format string.
+格式可以从一个格式化字符串实例化。需要注意的是的traceback信息被自动地加入到日志条目，
+你不需要在日志格式的格式化字符串中去做。
 
-Here some example setups:
+这些一些配置的例子：
 
-Email
+邮件
 `````
 
 ::
@@ -145,7 +107,7 @@ Email
     %(message)s
     '''))
 
-File logging
+文件记录
 ````````````
 
 ::
@@ -157,77 +119,62 @@ File logging
     ))
 
 
-Complex Log Formatting
+复杂的日志格式
 ``````````````````````
 
-Here is a list of useful formatting variables for the format string.  Note
-that this list is not complete, consult the official documentation of the
-:mod:`logging` package for a full list.
+这里是一个有用的格式化字符的格式变量列表。注意这个列表并不完整，完整的列表翻阅 :mod:`logging` 包的官方文档。
 
 .. tabularcolumns:: |p{3cm}|p{12cm}|
 
 +------------------+----------------------------------------------------+
-| Format           | Description                                        |
+| 格式             | 描述                                               |
 +==================+====================================================+
-| ``%(levelname)s``| Text logging level for the message                 |
+| ``%(levelname)s``| 消息文本的日志记录级别                             |
 |                  | (``'DEBUG'``, ``'INFO'``, ``'WARNING'``,           |
-|                  | ``'ERROR'``, ``'CRITICAL'``).                      |
+|                  | ``'ERROR'``, ``'CRITICAL'``)。                     |
 +------------------+----------------------------------------------------+
-| ``%(pathname)s`` | Full pathname of the source file where the         |
-|                  | logging call was issued (if available).            |
+| ``%(pathname)s`` | 发起日志调用（如果可用）的源文件的完整路径名。     |
 +------------------+----------------------------------------------------+
-| ``%(filename)s`` | Filename portion of pathname.                      |
+| ``%(filename)s`` | 路径中的文件名部分 。                              |
 +------------------+----------------------------------------------------+
-| ``%(module)s``   | Module (name portion of filename).                 |
+| ``%(module)s``   | 模块（文件名的名称部分）。                         |
 +------------------+----------------------------------------------------+
-| ``%(funcName)s`` | Name of function containing the logging call.      |
+| ``%(funcName)s`` | 包含日志调用的函数名 。                            |
 +------------------+----------------------------------------------------+
-| ``%(lineno)d``   | Source line number where the logging call was      |
-|                  | issued (if available).                             |
+| ``%(lineno)d``   | 日志记录调用所在的源文件行的行号（如果可用）。     |
 +------------------+----------------------------------------------------+
-| ``%(asctime)s``  | Human-readable time when the LogRecord` was        |
-|                  | created.  By default this is of the form           |
-|                  | ``"2003-07-08 16:49:45,896"`` (the numbers after   |
-|                  | the comma are millisecond portion of the time).    |
-|                  | This can be changed by subclassing the formatter   |
-|                  | and overriding the                                 |
-|                  | :meth:`~logging.Formatter.formatTime` method.      |
+| ``%(asctime)s``  | LogRecord创建时可读的时间。默认的形式是            |
+|                  | ``"2003-07-08 16:49:45,896"`` (逗号后的数字        |
+|                  |  时间的毫秒部分).  它可以通过继承格式并且重载      |
+|                  | :meth:`~logging.Formatter.formatTime` 方法改变。   |
 +------------------+----------------------------------------------------+
-| ``%(message)s``  | The logged message, computed as ``msg % args``     |
+| ``%(message)s``  | 记录的消息，记为 ``msg % args`` 。                 |
 +------------------+----------------------------------------------------+
 
-If you want to further customize the formatting, you can subclass the
-formatter.  The formatter has three interesting methods:
+如果你想深度定制日志格式，你可以继承格式。格式有三个需要关注的方法：
 
 :meth:`~logging.Formatter.format`:
-    handles the actual formatting.  It is passed a
-    :class:`~logging.LogRecord` object and has to return the formatted
-    string.
+    处理实际格式。
+    传入一个 :class:`~logging.LogRecord` 对象且必须返回格式化的字符串。
 :meth:`~logging.Formatter.formatTime`:
-    called for `asctime` formatting.  If you want a different time format
-    you can override this method.
+    为格式化 `asctime` 而调用。
+    如果你想要一个不同的时间格式你可以重载这个方法。
 :meth:`~logging.Formatter.formatException`
-    called for exception formatting.  It is passed an :attr:`~sys.exc_info`
-    tuple and has to return a string.  The default is usually fine, you
-    don't have to override it.
+    为格式化异常而调用。传入一个 :attr:`~sys.exc_info` 元组且必须返回一个字符串。
+    默认的是足够好，你不必重载它了。  
 
-For more information, head over to the official documentation.
+更多信息，请查阅官方文档。
 
 
-Other Libraries
+其它的库
 ---------------
 
-So far we only configured the logger your application created itself.
-Other libraries might log themselves as well.  For example, SQLAlchemy uses
-logging heavily in its core.  While there is a method to configure all
-loggers at once in the :mod:`logging` package, I would not recommend using
-it.  There might be a situation in which you want to have multiple
-separate applications running side by side in the same Python interpreter
-and then it becomes impossible to have different logging setups for those.
+目前为止我们只配置了应用程序本身建立的日志记录器。同样其他库也会自己记录日志。比如，
+SQLAlchemy在自己核心代码中大量使用了日志。尽管在 :mod:`logging` 包中有一种方式一次性配置所有日志，
+我不建议使用它。可能存在一种情况，当你想 要在同一个Python解释器中并排运行多个独立的应用时，
+则不可能对它们的日志记录器做不同的设置。
 
-Instead, I would recommend figuring out which loggers you are interested
-in, getting the loggers with the :func:`~logging.getLogger` function and
-iterating over them to attach handlers::
+作为替代，我推荐你找出你有兴趣的日志记录器，用 :func:`~logging.getLogger` 函数来获取日志记录器，并且遍历它们来附加处理程序::
 
     from logging import getLogger
     loggers = [app.logger, getLogger('sqlalchemy'),
@@ -237,56 +184,43 @@ iterating over them to attach handlers::
         logger.addHandler(file_handler)
 
 
-Debugging Application Errors
+调试应用程序错误
 ============================
 
-For production applications, configure your application with logging and
-notifications as described in :ref:`application-errors`.  This section provides
-pointers when debugging deployment configuration and digging deeper with a
-full-featured Python debugger.
+对于生产应用，按照 :ref:`application-errors` 来配置应用程序日志和通知。
+这个章节讲述了调试部署配置和深入一个功能强大的Python调试器的要点。
 
 
-When in Doubt, Run Manually
+有疑问时，手动运行
 ---------------------------
 
-Having problems getting your application configured for production?  If you
-have shell access to your host, verify that you can run your application
-manually from the shell in the deployment environment.  Be sure to run under
-the same user account as the configured deployment to troubleshoot permission
-issues.  You can use Flask's builtin development server with `debug=True` on
-your production host, which is helpful in catching configuration issues, but
-**be sure to do this temporarily in a controlled environment.** Do not run in
-production with `debug=True`.
+在配置你的应用到生产时遇到了问题？如果你拥有主机的shell权限，验证你是否可以在部署环境中手动用shell运行你的应用。
+确保在同一用户账户下运行配置好的部署来解决权限问题。你可以设置debug=True来使用Flask内置的开发服务器，这在 捕获配置问题的时候非常有效，但是 **请确保在可控环境下临时地这么做**。 不要在生产环境中使用debug=True运行。
 
 
 .. _working-with-debuggers:
 
-Working with Debuggers
+使用调试器
 ----------------------
 
-To dig deeper, possibly to trace code execution, Flask provides a debugger out
-of the box (see :ref:`debug-mode`).  If you would like to use another Python
-debugger, note that debuggers interfere with each other.  You have to set some
-options in order to use your favorite debugger:
+为了能够更加深入，可能会跟踪代码的执行，Flask 提供了一个框架外的调试器(请看 :ref:`debug-mode`)。
+如果你想用其它的Python调试器，请注意相互的调试器接口。为了使用你喜爱的调试器你必须设置一些选项：
 
-* ``debug``        - whether to enable debug mode and catch exceptinos
-* ``use_debugger`` - whether to use the internal Flask debugger
-* ``use_reloader`` - whether to reload and fork the process on exception
+* ``debug``        - 是否开启调试模式并捕获异常
+* ``use_debugger`` - 是否使用内部的 Flask 调试器
+* ``use_reloader`` - 是否在异常时重新载入并创建子进程
 
-``debug`` must be True (i.e., exceptions must be caught) in order for the other
-two options to have any value.
+``debug`` 必须为True(即，异常必须捕获异常)来允许其它的两个选项设置为任何值。
 
-If you're using Aptana/Eclipse for debugging you'll need to set both
-``use_debugger`` and ``use_reloader`` to False.
+如果你使用 Aptana/Eclipse调试，你将需要设置 ``use_debugger`` 和 ``use_reloader`` 为False。
 
-A possible useful pattern for configuration is to set the following in your
-config.yaml (change the block as appropriate for your application, of course)::
+一个可能有用的配置模式就是在你的config.yaml中设置为如下(当然，自行更改为适用你应用的)::
 
    FLASK:
        DEBUG: True
        DEBUG_WITH_APTANA: True
 
-Then in your application's entry-point (main.py), you could have something like::
+接着在应用程序的入口处，你可以写成这样::
 
    if __name__ == "__main__":
        # To allow aptana to receive errors, set use_debugger=False

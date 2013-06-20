@@ -1,36 +1,30 @@
 .. _testing:
 
-Testing Flask Applications
+测试Flask应用
 ==========================
 
-   **Something that is untested is broken.**
+   **未经测试的东西是不完整的**
 
-The origin of this quote is unknown and while it is not entirely correct, it is also
-not far from the truth.  Untested applications make it hard to
-improve existing code and developers of untested applications tend to
-become pretty paranoid.  If an application has automated tests, you can
-safely make changes and instantly know if anything breaks.
+这句话的起源是未知的而且不完全正确，但是它离真理也不远了。未经测试的应用程序使其难以改善
+现有的代码和未经测试的应用程序的开发人员往往会变得相当偏执。如果应用程序有自动测试，
+您可以放心地进行更改并立即知道是否有任何问题。
 
-Flask provides a way to test your application by exposing the Werkzeug 
-test :class:`~werkzeug.test.Client` and handling the context locals for you.
-You can then use that with your favourite testing solution.  In this documentation
-we will use the :mod:`unittest` package that comes pre-installed with Python.
+Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 :class:`~werkzeug.test.Client` 暴露以及为你处理本地上下文。
+然后你可以使用你最喜爱的测试解决方案。在本文档中我们将使用预装在Python的 :mod:`unittest` 包。
 
-The Application
+应用程序
 ---------------
 
-First, we need an application to test; we will use the application from 
-the :ref:`tutorial`.  If you don't have that application yet, get the 
-sources from `the examples`_.
+首先，我们需要一个被测的应用；我们将采用来自 :ref:`tutorial` 的应用程序。如果你还没有这个应用程序，请从 
+`the examples`_  获取源代码。
 
 .. _the examples:
    http://github.com/mitsuhiko/flask/tree/master/examples/flaskr/
 
-The Testing Skeleton
+测试骨架
 --------------------
 
-In order to test the application, we add a second module 
-(`flaskr_tests.py`) and create a unittest skeleton there::
+为了测试应用，我们添加第二个模块(`flaskr_tests.py`)以及在里面创建一个unittest骨架::
 
     import os
     import flaskr
@@ -52,27 +46,16 @@ In order to test the application, we add a second module
     if __name__ == '__main__':
         unittest.main()
 
-The code in the :meth:`~unittest.TestCase.setUp` method creates a new test
-client and initializes a new database.  This function is called before
-each individual test function is run.  To delete the database after the 
-test, we close the file and remove it from the filesystem in the
-:meth:`~unittest.TestCase.tearDown` method.  Additionally during setup the
-``TESTING`` config flag is activated.  What it does is disabling the error
-catching during request handling so that you get better error reports when
-performing test requests against the application.
+在 :meth:`~unittest.TestCase.setUp` 方法中的代码创建了一个新的测试客户端并且初始化一个新的数据库。
+这个函数在每个单独的测试函数运行之前被调用。为了在测试后删除数据库，我们在 :meth:`~unittest.TestCase.tearDown` 方法
+中关闭了这个文件并且从文件系统中删除了它。此外在初始化过程中 ``TESTING`` 配置标志被激活。这将会使得处理请求时的错误捕捉失效，以便于 您在进行对应用发出请求的测试时获得更好的错误反馈。
 
-This test client will give us a simple interface to the application.  We can 
-trigger test requests to the application, and the client will also keep track 
-of cookies for us.
+这个测试客户端将提供给我们一个通向应用的简单接口，我们可以触发向应用发送请求的测试，并且此客户端也会为我们跟踪cookies。
 
-Because SQLite3 is filesystem-based we can easily use the tempfile module
-to create a temporary database and initialize it.  The
-:func:`~tempfile.mkstemp` function does two things for us: it returns a
-low-level file handle and a random file name, the latter we use as
-database name.  We just have to keep the `db_fd` around so that we can use
-the :func:`os.close` function to close the file.
+因为SQLite3是基于文件系统的，我们可以轻易使用tempfile模块来创建一个临时数据库并且初始化它。:func:`~tempfile.mkstemp` 函数为我们做了两件事情：它返回一个低级别的文件句柄和一个随机文件名 ​​，我们使用后者作为数据库名。我们只需保持 `db_fd` 以便
+我们能用 :func:`os.close` 函数来关闭这个文件。
 
-If we now run the test suite, we should see the following output::
+如果我们现在运行测试套件，我们将会看到如下的输出::
 
     $ python flaskr_tests.py
 
@@ -81,17 +64,13 @@ If we now run the test suite, we should see the following output::
 
     OK
 
-Even though it did not run any actual tests, we already know that our flaskr
-application is syntactically valid, otherwise the import would have died
-with an exception.
+即使没有运行任何实际的测试，我们已经知道我们的flaskr应用语法上是有效的，否则在导入的时候就会抛出异常中断。
 
-The First Test
+第一个测试
 --------------
 
-Now it's time to start testing the functionality of the application.  
-Let's check that the application shows "No entries here so far" if we 
-access the root of the application (``/``). To do this, we add a new
-test method to our class, like this::
+现在是时候开始测试应用程序的功能。让我们来检查应用程序是否显示 "No entries here so far"，当我们访问应用程序的根目录(``/``) 。
+要做到这一点，我们在类中添加一个新的测试方法，像这样::
 
     class FlaskrTestCase(unittest.TestCase):
 
@@ -108,16 +87,13 @@ test method to our class, like this::
             rv = self.app.get('/')
             assert 'No entries here so far' in rv.data
 
-Notice that our test functions begin with the word `test`; this allows 
-:mod:`unittest` to automatically identify the method as a test to run. 
+注意到我们的测试函数以 `test` 开头；这使得 :mod:`unittest` 能够自动识别要运行的测试方法。
 
-By using `self.app.get` we can send an HTTP `GET` request to the application with 
-the given path.  The return value will be a :class:`~flask.Flask.response_class` object. 
-We can now use the :attr:`~werkzeug.wrappers.BaseResponse.data` attribute to inspect
-the return value (as string) from the application.  In this case, we ensure that 
-``'No entries here so far'`` is part of the output.
+通过使用`self.app.get`，我们可以发送一个HTTP `GET` 请求到一个给定路径的应用程序。返回的值将会是一个
+:class:`~flask.Flask.response_class` 对象。我们现在可以用 :attr:`~werkzeug.wrappers.BaseResponse.data` 属性
+检查从应用中返回的值（作为字符串）。在这种情况下，我们将确保 ``'No entries here so far'`` 是输出的一部分。
 
-Run it again and you should see one passing test::
+再次运行它，你应该看到一个通过测试::
 
     $ python flaskr_tests.py
     .
@@ -126,16 +102,14 @@ Run it again and you should see one passing test::
 
     OK
 
-Logging In and Out
+登录和注销
 ------------------
 
-The majority of the functionality of our application is only available for
-the administrative user, so we need a way to log our test client in and out
-of the application.  To do this, we fire some requests to the login and logout 
-pages with the required form data (username and password).  And because the 
-login and logout pages redirect, we tell the client to `follow_redirects`.
+我们应用的大部分功能只允许具有管理员资格的用户访问。所以我们需要一种方法来帮助我们的测试客户端登录和注销。
+为此，我们向登录和注销页面发送一些请求，这些请求都携带了表单数据（用户名和密码），
+因为登录和注销页面都会重定向，我们将客户端设置为 `follow_redirects` 。
 
-Add the following two methods to your `FlaskrTestCase` class::
+添加如下的两种方法到你的 `FlaskrTestCase` 类::
 
    def login(self, username, password):
        return self.app.post('/login', data=dict(
@@ -146,8 +120,7 @@ Add the following two methods to your `FlaskrTestCase` class::
    def logout(self):
        return self.app.get('/logout', follow_redirects=True)
 
-Now we can easily test that logging in and out works and that it fails with
-invalid credentials.  Add this new test to the class::
+现在我们可以轻易地测试正常地登录和注销以及因无效的认证而失败地登录。添加这个新的测试到类中::
 
    def test_login_logout(self):
        rv = self.login('admin', 'default')
@@ -159,11 +132,10 @@ invalid credentials.  Add this new test to the class::
        rv = self.login('admin', 'defaultx')
        assert 'Invalid password' in rv.data
 
-Test Adding Messages
+测试添加消息
 --------------------
 
-We should also test that adding messages works.  Add a new test method
-like this::
+我们应该测试添加消息是否正常，添加一个新的测试方法像这样::
 
     def test_messages(self):
         self.login('admin', 'default')
@@ -175,10 +147,9 @@ like this::
         assert '&lt;Hello&gt;' in rv.data
         assert '<strong>HTML</strong> allowed here' in rv.data
 
-Here we check that HTML is allowed in the text but not in the title,
-which is the intended behavior.
+这里我们检查HTML允许在正文但是不允许在标题，这是预期的行为。
 
-Running that should now give us three passing tests::
+运行这个测试，我们应该得到三个通过的测试:::
 
     $ python flaskr_tests.py
     ...
@@ -187,24 +158,17 @@ Running that should now give us three passing tests::
 
     OK
 
-For more complex tests with headers and status codes, check out the
-`MiniTwit Example`_ from the sources which contains a larger test
-suite.
+关于请求头以及状态码更多复杂的测试，请查看 `MiniTwit Example`_ 源代码，它包含一个大型的测试套件。
 
 
 .. _MiniTwit Example:
    http://github.com/mitsuhiko/flask/tree/master/examples/minitwit/
 
 
-Other Testing Tricks
+其它测试技巧
 --------------------
 
-Besides using the test client as shown above, there is also the
-:meth:`~flask.Flask.test_request_context` method that can be used
-in combination with the `with` statement to activate a request context
-temporarily.  With this you can access the :class:`~flask.request`,
-:class:`~flask.g` and :class:`~flask.session` objects like in view
-functions.  Here is a full example that demonstrates this approach::
+除了如上文演示的使用测试客户端完成测试的方法，还有一个 :meth:`~flask.Flask.test_request_context` 方法可以用于配合 `with` 声明，用于触发一个临时的请求上下文。通过它，您可以访问 :class:`~flask.request` ，:class:`~flask.g` 和 :class:`~flask.session` 类的对象，就像在视图中一样。这里有一个完整的例子示范了这种用法::
 
     app = flask.Flask(__name__)
 
@@ -212,20 +176,12 @@ functions.  Here is a full example that demonstrates this approach::
         assert flask.request.path == '/'
         assert flask.request.args['name'] == 'Peter'
 
-All the other objects that are context bound can be used in the same
-way.
+以同样的方式，可以使用所有其它上下文绑定的对象。
 
-If you want to test your application with different configurations and
-there does not seem to be a good way to do that, consider switching to
-application factories (see :ref:`app-factories`).
+如果你想测试在不同的配置下你的应用程序，这里似乎没有一个很好的方法，考虑切换到应用工厂 (请看 :ref:`app-factories`)。
 
-Note however that if you are using a test request context, the
-:meth:`~flask.Flask.before_request` functions are not automatically called
-same for :meth:`~flask.Flask.after_request` functions.  However
-:meth:`~flask.Flask.teardown_request` functions are indeed executed when
-the test request context leaves the `with` block.  If you do want the
-:meth:`~flask.Flask.before_request` functions to be called as well, you
-need to call :meth:`~flask.Flask.preprocess_request` yourself::
+值得注意的是如果你使用的是一个测试请求上下文，:meth:`~flask.Flask.before_request` 同 :meth:`~flask.Flask.after_request` 一样不会自动地被调用。然而 :meth:`~flask.Flask.teardown_request` 函数在测试请求的上下文离开with块确实会被执行。如果你
+要 :meth:`~flask.Flask.before_request` 函数同样被调用，你必须自己调用 :meth:`~flask.Flask.preprocess_request`::
 
     app = flask.Flask(__name__)
 
@@ -233,12 +189,9 @@ need to call :meth:`~flask.Flask.preprocess_request` yourself::
         app.preprocess_request()
         ...
 
-This can be necessary to open database connections or something similar
-depending on how your application was designed.
+这对于打开数据库连接或者其他类似的操作来说，很可能是必须的，这视您应用的设计方式而定。
 
-If you want to call the :meth:`~flask.Flask.after_request` functions you
-need to call into :meth:`~flask.Flask.process_response` which however
-requires that you pass it a response object::
+如果您希望调用 :meth:`~flask.Flask.after_request` 函数， 您需要使用 :meth:`~flask.Flask.process_response` 方法。 这个方法需要您传入一个response对象::
 
     app = flask.Flask(__name__)
 
@@ -247,19 +200,16 @@ requires that you pass it a response object::
         resp = app.process_response(resp)
         ...
 
-This in general is less useful because at that point you can directly
-start using the test client.
+这一般用处不大，因为这时候你可以直接地开始使用测试客户端。
 
 
-Keeping the Context Around
+保持上下文
 --------------------------
 
 .. versionadded:: 0.4
 
-Sometimes it is helpful to trigger a regular request but still keep the
-context around for a little longer so that additional introspection can
-happen.  With Flask 0.4 this is possible by using the
-:meth:`~flask.Flask.test_client` with a `with` block::
+有时触发一个通常的请求，但是将保持当前的上下文更长的时间，以便于附加的内省发生是很有用的。
+在Flask0.4中，在 `with` 块中使用 :meth:`~flask.Flask.test_client` 成为可能::
 
     app = flask.Flask(__name__)
 
@@ -267,34 +217,25 @@ happen.  With Flask 0.4 this is possible by using the
         rv = c.get('/?tequila=42')
         assert request.args['tequila'] == '42'
 
-If you were to use just the :meth:`~flask.Flask.test_client` without
-the `with` block, the `assert` would fail with an error because `request`
-is no longer available (because you are trying to use it outside of the actual request).
-However, keep in mind that any :meth:`~flask.Flask.after_request` functions
-are already called at this point so your database connection and
-everything involved is probably already closed down.
+如果你想要不在 `with` 块中使用 :meth:`~flask.Flask.test_client`，`assert` 将会失败因为 `request` 不再可用
+(因为您试图在非真正请求中时候访问它)。然而，请记住任何 :meth:`~flask.Flask.after_request` 函数此时都已经 被执行了，所以您的数据库和一切相关的东西都可能已经被关闭。
 
 
-Accessing and Modifying Sessions
+访问和修改会话
 --------------------------------
 
 .. versionadded:: 0.8
 
-Sometimes it can be very helpful to access or modify the sessions from the
-test client.  Generally there are two ways for this.  If you just want to
-ensure that a session has certain keys set to certain values you can just
-keep the context around and access :data:`flask.session`::
+有时候从测试客户端访问或者修改会话是十分有用的。通常这有两种方法实现。如果你只要确保一个会话拥有设置特定值的特定的键，
+你只要保持上下文以及访问 :data:`flask.session`::
 
     with app.test_client() as c:
         rv = c.get('/')
         assert flask.session['foo'] == 42
 
-This however does not make it possible to also modify the session or to
-access the session before a request was fired.  Starting with Flask 0.8 we
-provide a so called “session transaction” which simulates the appropriate
-calls to open a session in the context of the test client and to modify
-it.  At the end of the transaction the session is stored.  This works
-independently of the session backend used::
+然而这并不能使它可能还可以修改会话或访问会话在发送请求之前。从Flask0.8开始，
+我们提供一个叫做”Session事务“的东西用于模拟适当的调用，从而在测试客户端的上下文中打开一个Session，
+并用于修改。在事务的结尾，Session将被恢复为原来的样子。这些都独立于Session的后端使用::
 
     with app.test_client() as c:
         with c.session_transaction() as sess:
@@ -302,6 +243,4 @@ independently of the session backend used::
 
         # once this is reached the session was stored
 
-Note that in this case you have to use the ``sess`` object instead of the
-:data:`flask.session` proxy.  The object however itself will provide the
-same interface.
+值得注意地是在此时您必须使用 ``sess`` 对象而不是调用 :data:`flask.session` 代理，而这个对象本身提供了同样的接口。

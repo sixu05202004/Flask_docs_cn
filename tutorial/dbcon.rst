@@ -1,16 +1,13 @@
 .. _tutorial-dbcon:
 
-Step 4: Request Database Connections
+Step 4: 请求数据库连接
 ------------------------------------
 
-Now we know how we can open database connections and use them for scripts,
-but how can we elegantly do that for requests?  We will need the database
-connection in all our functions so it makes sense to initialize them
-before each request and shut them down afterwards.
+现在我们知道了怎样建立数据库连接以及在脚本中使用这些连接，但是我们如何能优雅地在请求中这么做？
+所有我们的函数中需要数据库连接，因此在请求之前初始化它们，在请求结束后自动关闭他们就很有意义。
 
-Flask allows us to do that with the :meth:`~flask.Flask.before_request`,
-:meth:`~flask.Flask.after_request` and :meth:`~flask.Flask.teardown_request`
-decorators::
+Flask允许我们使用 :meth:`~flask.Flask.before_request`，:meth:`~flask.Flask.after_request` 和 
+:meth:`~flask.Flask.teardown_request` 装饰器来实现这个功能::
 
     @app.before_request
     def before_request():
@@ -20,38 +17,25 @@ decorators::
     def teardown_request(exception):
         g.db.close()
 
-Functions marked with :meth:`~flask.Flask.before_request` are called before
-a request and passed no arguments.  Functions marked with
-:meth:`~flask.Flask.after_request` are called after a request and
-passed the response that will be sent to the client.  They have to return
-that response object or a different one.  They are however not guaranteed
-to be executed if an exception is raised, this is where functions marked with
-:meth:`~flask.Flask.teardown_request` come in.  They get called after the
-response has been constructed.  They are not allowed to modify the request, and
-their return values are ignored.  If an exception occurred while the request was
-being processed, it is passed to each function; otherwise, `None` is passed in.
+使用 :meth:`~flask.Flask.before_request` 装饰器的函数会在请求之前被调用而且不带参数。使用
+:meth:`~flask.Flask.after_request` 装饰器的函数会在请求之后被调用且传入将要发给客户端的响应。
+它们必须返回那个响应对象或是不同的响应对象。但当异常抛出时，它们不一定会被执行，
+这时可以使用 :meth:`~flask.Flask.teardown_request` 装饰器。它装饰的函数将在响应构造后执行，
+并不允许修改请求，返回的值会被忽略。如果在请求已经被处理的时候抛出异常，它会被传递到每个函数，
+否则会传入一个 `None` 。
 
-We store our current database connection on the special :data:`~flask.g`
-object that Flask provides for us.  This object stores information for one
-request only and is available from within each function.  Never store such
-things on other objects because this would not work with threaded
-environments.  That special :data:`~flask.g` object does some magic behind
-the scenes to ensure it does the right thing.
+我们把当前的数据库连接保存在Flask提供的 :data:`~flask.g` 特殊对象中。这个对象只能保存一次请求的信息，
+并且在每个函数里都可用。不要用其它对象来保存信息，因为在多线程环境下将不可行。特殊的对象 :data:`~flask.g` 在后台有一些神 奇的机制来保证它在做正确的事情。
 
-Continue to :ref:`tutorial-views`.
+请继续浏览 :ref:`tutorial-views` 。
 
-.. hint:: Where do I put this code?
+.. hint:: 我该把代码放哪里？
 
-   If you've been following along in this tutorial, you might be wondering
-   where to put the code from this step and the next.  A logical place is to
-   group these module-level functions together, and put your new
-   ``before_request`` and ``teardown_request`` functions below your existing
-   ``init_db`` function (following the tutorial line-by-line).
+   如果你一直遵循本教程，你可能会问从这步到下一步，代码放在什么地方。逻辑上应该按照模块来组织函数，
+   把你新的 ``before_request`` 和 ``teardown_request`` 装饰的函数放在之前的 ``init_db`` 函数下面（逐行遵照教程）。
 
-   If you need a moment to find your bearings, take a look at how the `example
-   source`_ is organized.  In Flask, you can put all of your application code
-   into a single Python module.  You don't have to, and if your app :ref:`grows
-   larger <larger-applications>`, it's a good idea not to.
+   如果你需要短时间找到你的思路，请看看 `example source`_ 是如何组织的。在Flask中，你可以把所有的应用代码放到单个Python
+   模块中。但你无需这么做，并且在你的应用 :ref:`grows larger <larger-applications>` 的时候，这显然不是个好主意。   
 
 .. _example source:
    http://github.com/mitsuhiko/flask/tree/master/examples/flaskr/

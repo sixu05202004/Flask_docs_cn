@@ -1,104 +1,85 @@
-Templates
+模版
 =========
 
-Flask leverages Jinja2 as template engine.  You are obviously free to use
-a different template engine, but you still have to install Jinja2 to run
-Flask itself.  This requirement is necessary to enable rich extensions.
-An extension can depend on Jinja2 being present.
+Flask利用Jinja2的模板引擎。当然你是自由地使用不同的模版引擎，但是你仍然必须安装Jinja2为了运行
+Flask本身。这个要求是必要的，为了丰富的扩展可用。所有的扩展是依赖于Jinja2的存在。
 
-This section only gives a very quick introduction into how Jinja2
-is integrated into Flask.  If you want information on the template
-engine's syntax itself, head over to the official `Jinja2 Template
-Documentation <http://jinja.pocoo.org/2/documentation/templates>`_ for
-more information.
+本节仅仅给出一个Jinja2如何融入Flask的快速介绍。如果想要关于模版引擎语法自身的信息，查看官方的 
+`Jinja2 Template Documentation <http://jinja.pocoo.org/2/documentation/templates>`_  获取更多的信息。
 
-Jinja Setup
+Jinja配置
 -----------
 
-Unless customized, Jinja2 is configured by Flask as follows:
+除非定制，Flask中inja2配置如下：
 
--   autoescaping is enabled for all templates ending in ``.html``,
-    ``.htm``, ``.xml`` as well as ``.xhtml``
--   a template has the ability to opt in/out autoescaping with the
-    ``{% autoescape %}`` tag.
--   Flask inserts a couple of global functions and helpers into the
-    Jinja2 context, additionally to the values that are present by
-    default.
+-   所有以 ``.html`` ，``.htm`` ，``.xml`` 以及 ``.xhtml`` 结尾的模版开启自动转义。
+-   一个模板可以用 ``{% autoescape %}`` 标签选择开关自动转义。
+-   Flask在Jinja2上下文中插入了几个全局函数和助手，另外还有一些目前默认的值。
 
-Standard Context
+标准上下文
 ----------------
 
-The following global variables are available within Jinja2 templates
-by default:
+下面全局变量默认在Jinja2模版中可用:
 
 .. data:: config
    :noindex:
 
-   The current configuration object (:data:`flask.config`)
+   当前配置对象 (:data:`flask.config`)
 
    .. versionadded:: 0.6
 
 .. data:: request
    :noindex:
 
-   The current request object (:class:`flask.request`)
+   当前请求对象 (:class:`flask.request`)
 
 .. data:: session
    :noindex:
 
-   The current session object (:class:`flask.session`)
+   当前会话对象 (:class:`flask.session`)
 
 .. data:: g
    :noindex:
 
-   The request-bound object for global variables (:data:`flask.g`)
+   实现全局变量的请求范围的对象 (:data:`flask.g`)
 
 .. function:: url_for
    :noindex:
 
-   The :func:`flask.url_for` function.
+   :func:`flask.url_for` 函数。
 
 .. function:: get_flashed_messages
    :noindex:
 
-   The :func:`flask.get_flashed_messages` function.
+   :func:`flask.get_flashed_messages` 函数。
 
-.. admonition:: The Jinja Context Behavior
+.. admonition:: Jinja上下文行为
 
-   These variables are added to the context of variables, they are not
-   global variables.  The difference is that by default these will not
-   show up in the context of imported templates.  This is partially caused
-   by performance considerations, partially to keep things explicit.
+   这些变量被添加到上下文变量，它们不是全局变量。不同在于，它们默认不会 在导入模板的上下文中出现。这样做，一方面是考虑到性能，另一方面是为了让事情显式透明。
 
-   What does this mean for you?  If you have a macro you want to import,
-   that needs to access the request object you have two possibilities:
+   对于你着意味着什么？如果你希望导入一个宏，你有两种可能来访问请求对象：
 
-   1.   you explicitly pass the request to the macro as parameter, or
-        the attribute of the request object you are interested in.
-   2.   you import the macro "with context".
+   1.   你显式地传入请求或请求对象的属性作为宏的参数。
+   2.   使用 "with context" 导入宏。
 
-   Importing with context looks like this:
+   在上下文中导入的方式如下：
 
    .. sourcecode:: jinja
 
       {% from '_helpers.html' import my_macro with context %}
 
-Standard Filters
+标准过滤器
 ----------------
 
-These filters are available in Jinja2 additionally to the filters provided
-by Jinja2 itself:
+这些过滤器在Jinja2中是可用的，也是Jinja2自带的过滤器：
 
 .. function:: tojson
    :noindex:
 
-   This function converts the given object into JSON representation.  This
-   is for example very helpful if you try to generate JavaScript on the
-   fly.
+   这个函数把给定的对象转换成JSON表示。如果你要动态生成JavaScript这里是一个非常有用的例子。
 
-   Note that inside `script` tags no escaping must take place, so make
-   sure to disable escaping with ``|safe`` if you intend to use it inside
-   `script` tags:
+   注意在 `script` 标签里面转义是不应该发生的，因此你打算在 `script` 标签里面使用它确保用 ``|safe`` 
+   禁用转义：
 
    .. sourcecode:: html+jinja
 
@@ -106,36 +87,26 @@ by Jinja2 itself:
            doSomethingWith({{ user.username|tojson|safe }});
        </script>
 
-   That the ``|tojson`` filter escapes forward slashes properly for you.
+   ``|tojson`` 过滤器会为你恰当地转义斜线。
 
-Controlling Autoescaping
+控制自动转义
 ------------------------
 
-Autoescaping is the concept of automatically escaping special characters
-of you.  Special characters in the sense of HTML (or XML, and thus XHTML)
-are ``&``, ``>``, ``<``, ``"`` as well as ``'``.  Because these characters
-carry specific meanings in documents on their own you have to replace them
-by so called "entities" if you want to use them for text.  Not doing so
-would not only cause user frustration by the inability to use these
-characters in text, but can also lead to security problems.  (see
-:ref:`xss`)
+自动转义的概念是自动为你转义特殊字符。HTML(或者XML，以及XHTML)意义下的特殊字符是
+``&``, ``>``, ``<``, ``"`` 以及 ``'`` 。因为这些字符在文档中表示它们特定的含义，
+如果你想在文本中使用它们，应该把它们替换成相应的“实体”。不这么做的话不仅仅会让用户很难
+在文本中使用这么字符，而且会导致安全问题。(请参看 :ref:`xss` )
 
-Sometimes however you will need to disable autoescaping in templates.
-This can be the case if you want to explicitly inject HTML into pages, for
-example if they come from a system that generate secure HTML like a
-markdown to HTML converter.
+然而有时间你需要在模版中禁用自动转义。这种情况可能是你想要在页面中显式地插入HTML，
+比如内容来自一个markdown到HTML转换器的安全的HTML输出。
 
-There are three ways to accomplish that:
+这有三种方式完成这个工作：
 
--   In the Python code, wrap the HTML string in a :class:`~flask.Markup`
-    object before passing it to the template.  This is in general the
-    recommended way.
--   Inside the template, use the ``|safe`` filter to explicitly mark a
-    string as safe HTML (``{{ myvariable|safe }}``)
--   Temporarily disable the autoescape system altogether.
+-   在Python代码中，在传递到模板之前，用 :class:`~flask.Markup` 对象封装HTML字符串。这是一般的推荐方法。
+-   在模版中，使用 ``|safe`` 过滤器显式地标记一个字符串为安全的HTML。
+-   暂时地禁用自动转义系统。
 
-To disable the autoescape system in templates, you can use the ``{%
-autoescape %}`` block:
+你可以使用 ``{% autoescape %}`` 块在模板中禁用转义系统：
 
 .. sourcecode:: html+jinja
 
@@ -144,20 +115,17 @@ autoescape %}`` block:
         <p>{{ will_not_be_escaped }}
     {% endautoescape %}
 
-Whenever you do this, please be very cautious about the variables you are
-using in this block.
+无论你在什么时候做这个，请小心你在块中使用的变量。
 
 .. _registering-filters:
 
-Registering Filters
+注册过滤器
 -------------------
 
-If you want to register your own filters in Jinja2 you have two ways to do
-that.  You can either put them by hand into the
-:attr:`~flask.Flask.jinja_env` of the application or use the
-:meth:`~flask.Flask.template_filter` decorator.
+如果你要在Jinja2中注册你自己的过滤器，有两种方式。你可以手动地把它们加入到应用的 :attr:`~flask.Flask.jinja_env`，
+或者使用 :meth:`~flask.Flask.template_filter` 装饰器。
 
-The two following examples work the same and both reverse an object::
+下面两个例子作用相同，都是反转一个对象::
 
     @app.template_filter('reverse')
     def reverse_filter(s):
@@ -167,37 +135,25 @@ The two following examples work the same and both reverse an object::
         return s[::-1]
     app.jinja_env.filters['reverse'] = reverse_filter
 
-In case of the decorator the argument is optional if you want to use the
-function name as name of the filter.  Once registered, you can use the filter
-in your templates in the same way as Jinja2's builtin filters, for example if
-you have a Python list in context called `mylist`::
+在使用装饰器的情况下，如果你想以函数名当作过滤器名，参数是可选的。注册之后，你可以在模板中像使用Jinja2 内置过滤器一样使用你的过滤器，例如你在上下文中有一个名为 `mylist` 的Python列表::
 
     {% for x in mylist | reverse %}
     {% endfor %}
 
 
-Context Processors
+上下文处理器
 ------------------
 
-To inject new variables automatically into the context of a template
-context processors exist in Flask.  Context processors run before the
-template is rendered and have the ability to inject new values into the
-template context.  A context processor is a function that returns a
-dictionary.  The keys and values of this dictionary are then merged with
-the template context, for all templates in the app::
+Flask中的上下文处理器自动向模板的上下文中插入新变量。上下文处理器在模板 渲染之前运行，并且可以在模板上下文中插入新值。上下文处理器是一个返回字典的函数。
+这个字典的键值将与应用中的所有模板上下文结合::
 
     @app.context_processor
     def inject_user():
         return dict(user=g.user)
 
-The context processor above makes a variable called `user` available in
-the template with the value of `g.user`.  This example is not very
-interesting because `g` is available in templates anyways, but it gives an
-idea how this works.
+上述的上下文处理器使得一个名为 `user`，值为 `g.user` 的变量在模版中可用。这个例子不是很有意思，因为 `g` 在任何模板中都是可用的，但是它解释了上下文处理器是如何工作的。
 
-Variables are not limited to values; a context processor can also make
-functions available to templates (since Python allows passing around
-functions)::
+变量不仅限于值；一个上下文处理器也可以使函数在模板中可用（由于Python允许传递函数）::
 
     @app.context_processor
     def utility_processor():
@@ -205,11 +161,10 @@ functions)::
             return u'{0:.2f}{1}.format(amount, currency)
         return dict(format_price=format_price)
 
-The context processor above makes the `format_price` function available to all
-templates::
+上面的上下文处理器使得 `format_price` 函数在所有模板中可用::
 
     {{ format_price(0.33) }}
 
-You could also build `format_price` as a template filter (see
-:ref:`registering-filters`), but this demonstrates how to pass functions in a
-context processor.
+你也可以构建 `format_price` 为一个模板处理器(参看 :ref:`registering-filters`)，
+但这展示了上下文处理器如何传递一个函数。
+

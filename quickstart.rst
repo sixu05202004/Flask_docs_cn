@@ -220,9 +220,9 @@ HTTP (也就说web应用协议)有不同的方法来访问URLs。默认情况下
         else:
             show_the_login_form()
 
-如果使用 `GET` 方法，`HEAD`方法 将会自动添加进来。你不必处理它们。也能确保 `HEAD` 请求
-会按照 `HTTP RFC`_ (文档在HTTP协议里面描述) 要求来处理， 因此你完全可以忽略这部分HTTP规范。
-同样地，自从Flask0.6后，`OPTIONS`也能自动为你处理。
+如果使用 `GET` 方法，`HEAD` 方法将会自动添加进来。你不必处理它们。也能确保 `HEAD` 请求
+会按照 `HTTP RFC`_ (文档在HTTP协议里面描述) 要求来处理，因此你完全可以忽略这部分HTTP规范。
+同样地，自从Flask0.6后，`OPTIONS` 也能自动为你处理。
 
 也许你并不清楚HTTP方法是什么？别担心，这里有一个HTTP方法的快速入门以及为什么它们重要：
 
@@ -237,7 +237,7 @@ HTTP方法（通常也称为“谓词”）告诉服务器客户端想要对请�
     底层的Werkzeug库会为你处理的。
 
 `POST`
-    浏览器通知服务器它要在URL上 *提交*一些信息，服务器必须保证数据被存储且只存储一次。
+    浏览器通知服务器它要在URL上 *提交* 一些信息，服务器必须保证数据被存储且只存储一次。
     这是HTML表单通常发送数据到服务器的方法。
 
 `PUT`
@@ -397,7 +397,7 @@ Flask中的某些对象是全局对象，但不是通常的类型。这些对象
     from flask import request
 
 当前请求的方法可以用 :attr:`~flask.request.method` 属性来访问。你可以用 :attr:`~flask.request.form` 属性来访问表单数据
-(数据在 `POST` 或者 `PUT`中传输)。这里是上面提及到两种属性的完整的例子::
+(数据在 `POST` 或者 `PUT` 中传输)。这里是上面提及到两种属性的完整的例子::
 
     @app.route('/login', methods=['POST', 'GET'])
     def login():
@@ -429,7 +429,7 @@ Flask中的某些对象是全局对象，但不是通常的类型。这些对象
 文件上传
 ````````````
 
-你能够很容易地用Flask处理文件上传。只要确保在你的HTML表单中不要忘记设置属性 ``enctype="multipart/form-data"`，
+你能够很容易地用Flask处理文件上传。只要确保在你的HTML表单中不要忘记设置属性 ``enctype="multipart/form-data"``，
 否则浏览器将不传送文件。
 
 上传的文件是存储在内存或者文件系统上一个临时位置。你可以通过请求对象中 :attr:`~flask.request.files` 属性访问这些文件。
@@ -527,7 +527,7 @@ object does not exist yet.  This is possible by utilizing the
     def page_not_found(error):
         return render_template('page_not_found.html'), 404
 
-注意到 ``404`` 是在 :func:`~flask.render_template 调用之后。告诉Flask该页的错误代码应是 404 ，
+注意到 ``404`` 是在 :func:`~flask.render_template` 调用之后。告诉Flask该页的错误代码应是 404 ，
 即没有找到。默认的200被假定为：一切正常。
 
 .. _about-responses:
