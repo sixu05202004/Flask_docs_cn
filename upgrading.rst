@@ -19,6 +19,32 @@ installation, make sure to pass it the ``-U`` parameter::
 
     $ easy_install -U Flask
 
+.. _upgrading-to-010:
+
+Version 0.10
+------------
+
+The biggest change going from 0.9 to 0.10 is that the cookie serialization
+format changed from pickle to a specialized JSON format.  This change has
+been done in order to avoid the damage an attacker can do if the secret
+key is leaked.  When you upgrade you will notice two major changes: all
+sessions that were issued before the upgrade are invalidated and you can
+only store a limited amount of types in the session.  The new sessions are
+by design much more restricted to only allow JSON with a few small
+extensions for tuples and strings with HTML markup.
+
+In order to not break people's sessions it is possible to continue using
+the old session system by using the `Flask-OldSessions`_ extension.
+
+Flask also started storing the :data:`flask.g` object on the application
+context instead of the request context.  This change should be transparent
+for you but it means that you now can store things on the ``g`` object
+when there is no request context yet but an application context.  The old
+``flask.Flask.request_globals_class`` attribute was renamed to
+:attr:`flask.Flask.app_ctx_globals_class`.
+
+.. _Flask-OldSessions: http://packages.python.org/Flask-OldSessions/
+
 Version 0.9
 -----------
 
@@ -191,7 +217,7 @@ Manual Error Handler Attaching
 
 While it is still possible to attach error handlers to
 :attr:`Flask.error_handlers` it's discouraged to do so and in fact
-deprecated.  In generaly we no longer recommend custom error handler
+deprecated.  In general we no longer recommend custom error handler
 attaching via assignments to the underlying dictionary due to the more
 complex internal handling to support arbitrary exception classes and
 blueprints.  See :meth:`Flask.errorhandler` for more information.
