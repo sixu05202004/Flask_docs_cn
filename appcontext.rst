@@ -1,67 +1,44 @@
 .. _app-context:
 
-The Application Context
+应用上下文
 =======================
 
 .. versionadded:: 0.9
 
-One of the design ideas behind Flask is that there are two different
-“states” in which code is executed.  The application setup state in which
-the application implicitly is on the module level.  It starts when the
-:class:`Flask` object is instantiated, and it implicitly ends when the
-first request comes in.  While the application is in this state a few
-assumptions are true:
+Flask 背后的一个设计理念是在代码执行的时候存在两种不同的"状态"。应用隐式地处于模块层时配置状态。
+这始于 :class:`Flask` 对象实例化，并且当第一个请求传入时，会隐式地结束。当应用处于这种状态时，有如下假设:
 
--   the programmer can modify the application object safely.
--   no request handling happened so far
--   you have to have a reference to the application object in order to
-    modify it, there is no magic proxy that can give you a reference to
-    the application object you're currently creating or modifying.
+-   程序员能够安全地修改应用对象。
+-   之前没有发生过任何请求处理。
+-   你需要一个应用对象的引用来修改它，没有魔术代理可以给你一个你正在创建或修改的应用对象的引用。
 
-In contrast, during request handling, a couple of other rules exist:
+相比之下，在请求处理的时候。一些其它的规则存在：
 
--   while a request is active, the context local objects
-    (:data:`flask.request` and others) point to the current request.
--   any code can get hold of these objects at any time.
+-   当请求是活跃的时候，上下文本地对象( :data:`flask.request` 和其它的)指向当前请求。
+-   任何代码在任何时候都能够找到这些对象以供使用。
 
-There is a third state which is sitting in between a little bit.
-Sometimes you are dealing with an application in a way that is similar to
-how you interact with applications during request handling just that there
-is no request active.  Consider for instance that you're sitting in an
-interactive Python shell and interacting with the application, or a
-command line application.
+这里有一个第三种情况，有一点点差异。有时，你正在用类似请求处理时方式来与应用交互，
+即使并没有活动的请求。想象一下你用交互式 Python shell 与应用交互的情况，或是一个命令行应用的情况。
 
-The application context is what powers the :data:`~flask.current_app`
-context local.
+:data:`~flask.current_app` 上下文本地变量就是应用上下文驱动的。
 
-Purpose of the Application Context
+应用上下文目的
 ----------------------------------
 
-The main reason for the application's context existence is that in the
-past a bunch of functionality was attached to the request context in lack
-of a better solution.  Since one of the pillar's of Flask's design is that
-you can have more than one application in the same Python process.
+应用上下文存在的主要原因是，在过去，没有更好的方式来在请求上下文中附加一堆函数，
+因为 Flask 设计的支柱之一是你可以在一个 Python 进程中拥有多个应用。
 
-So how does the code find the “right” application?  In the past we
-recommended passing applications around explicitly, but that caused issues
-with libraries that were not designed with that in mind.
+那么代码如何找到“正确的”应用？在过去，我们推荐显式地到处传递应用，但是这 导致没有用这种想法设计的库的问题，因为让库实现这种想法太不方便。
 
-A common workaround for that problem was to use the
-:data:`~flask.current_app` proxy later on, which was bound to the current
-request's application reference.  Since however creating such a request
-context is an unnecessarily expensive operation in case there is no
-request around, the application context was introduced.
+解决上述问题的常用方法是使用后面将会提到的 :data:`~flask.current_app` 代理，它被限制在当前请求的应用引用。
+既然无论如何在没有请求时创建一个这样的请求上下文是一个没有必要的昂贵操作，那么就引入了应用上下文。
 
-Creating an Application Context
+创建一个应用上下文
 -------------------------------
 
-To make an application context there are two ways.  The first one is the
-implicit one: whenever a request context is pushed, an application context
-will be created alongside if this is necessary.  As a result of that, you
-can ignore the existence of the application context unless you need it.
+有两种方式创建一个应用上下文。第一种是隐式的方式：无论何时一个请求上下文被压栈， 一个应用上下文会并排创建，如果这是必须的。由于这样的结果，你可以忽略应用上下文的存在，除非你需要它。
 
-The second way is the explicit way using the
-:meth:`~flask.Flask.app_context` method::
+第二种方式是显式地使用 :meth:`~flask.Flask.app_context` 方法::
 
     from flask import Flask, current_app
 
@@ -70,46 +47,57 @@ The second way is the explicit way using the
         # within this block, current_app points to app.
         print current_app.name
 
-The application context is also used by the :func:`~flask.url_for`
-function in case a ``SERVER_NAME`` was configured.  This allows you to
-generate URLs even in the absence of a request.
+如果 ``SERVER_NAME`` 被配置话，应用上下文也能用于 :func:`~flask.url_for` 函数。这也允许你即使在没有请求的情况下生成 
+URLs。
 
-Locality of the Context
+应用上下文的局部变量
 -----------------------
 
-The application context is created and destroyed as necessary.  It never
-moves between threads and it will not be shared between requests.  As such
-it is the perfect place to store database connection information and other
-things.  The internal stack object is called :data:`flask._app_ctx_stack`.
-Extensions are free to store additional information on the topmost level,
-assuming they pick a sufficiently unique name and should put there
-information there, instead on the :data:`flask.g` object which is reserved
-for user code.
+应用上下文会会必要地创建并销毁。它不会在线程间移动，并且也不会在请求间共享。如此，
+它是一个存储数据库连接信息或是别的东西的最佳位置。内部的栈对象称为 :data:`flask._app_ctx_stack`。
+扩展可以自由的在最高水平存储额外的信息，如果它们选用了相当唯一的名称，相反 :data:`flask.g` 对象是
+为用户代码保留。
 
-For more information about that, see :ref:`extension-dev`.
+关于此更多的信息，请看 :ref:`extension-dev`。
 
-Context Usage
+应用上下文的用法
 -------------
 
-The context is typically used to cache resources on there that need to be
-created on a per-request or usage case.  For instance database connects
-are destined to go there.  When storing things on the application context
-unique names should be chosen as this is a place that is shared between
-Flask applications and extensions.
+应用上下文通常是用来缓存那些用来请求之前创建的或者请求使用情况下的资源。例如数据库连接是注定要使用应用上下文。
+存储的东西时应该为应用程序上下文选择唯一的名称，因为这是一个 Flask 应用和扩展之间共享的地方。
 
-The most common usage is to split resource management into two parts:
+最常见的用法是把资源管理划分成两部分：
 
-1.  an implicit resource caching on the context.
-2.  a context teardown based resource deallocation.
+1.  一个隐式的缓存上下文的资源。
+2.  一个基于资源释放的上下文销毁。
 
-Generally there would be a ``get_X()`` function that creates resource
-``X`` if it does not exist yet and otherwise returns the same resource,
-and a ``teardown_X()`` function that is registered as teardown handler.
+一般来说，``get_X()`` 函数用于创建资源 ``X``，如果 ``X`` 不存在的情况下否则会返回同样的资源，
+``teardown_X()`` 函数注册作为销毁处理器。
 
-This is an example that connects to a database::
+这是个连接数据库的例子::
 
     import sqlite3
     from flask import g
+
+    def get_db():
+        db = getattr(g, '_database', None)
+        if db is None:
+            db = g._database = connect_to_database()
+        return db
+
+    @app.teardown_appcontext
+    def teardown_db(exception):
+        db = getattr(g, '_database', None)
+        if db is not None:
+            db.close()
+
+首先 ``get_db()`` 被调用，连接将会建立。为了使得隐式地进行，:class:`~werkzeug.local.LocalProxy` 能够被使用::
+
+    from werkzeug.local import LocalProxy
+    db = LocalProxy(get_db)
+
+这种方式下用户可以直接访问 ``db`` ，它内部调用了``get_db()`` 。
+ flask import g
 
     def get_db():
         db = getattr(g, '_database', None)

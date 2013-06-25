@@ -260,12 +260,7 @@ Flask 0.8引入了示例文件夹。Flask 在很长时间使得直接引用相�
 “示例文件夹”的概念。实例文件夹被为不使用版本控制和特定的部署而设计。
 这是放置运行时更改的文件和配置文件的最佳位置。
 
-创建Flask应用的时候你可以显式地提供示例文件夹路径
-
-You can either explicitly provide the path of the instance folder when
-creating the Flask application or you can let Flask autodetect the
-instance folder.  For explicit configuration use the `instance_path`
-parameter::
+创建Flask应用的时候你可以显式地提供示例文件夹路径或者让Flask自动识别实例文件夹。对于显式的配置，使用 `instance_path` 参数::
 
     app = Flask(__name__, instance_path='/path/to/instance/folder')
 

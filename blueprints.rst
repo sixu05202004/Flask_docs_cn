@@ -1,6 +1,6 @@
 .. _blueprints:
 
-Modular Applications with Blueprints
+用蓝图实现模块化应用
 ====================================
 
 .. versionadded:: 0.7
@@ -13,7 +13,7 @@ A :class:`Blueprint` object works similarly to a :class:`Flask`
 application object, but it is not actually an application.  Rather it is a
 *blueprint* of how to construct or extend an application.
 
-Why Blueprints?
+为什么用蓝图？
 ---------------
 
 Blueprints in Flask are intended for these cases:
@@ -44,7 +44,7 @@ being registered. The downside is that you cannot unregister a blueprint
 once an application was created without having to destroy the whole
 application object.
 
-The Concept of Blueprints
+蓝图的概念
 -------------------------
 
 The basic concept of blueprints is that they record operations to execute
@@ -52,7 +52,7 @@ when registered on an application.  Flask associates view functions with
 blueprints when dispatching requests and generating URLs from one endpoint
 to another.
 
-My First Blueprint
+第一个蓝图
 ------------------
 
 This is what a very basic blueprint looks like.  In this case we want to
@@ -79,7 +79,7 @@ Additionally it will prefix the endpoint of the function with the
 name of the blueprint which was given to the :class:`Blueprint`
 constructor (in this case also ``simple_page``).
 
-Registering Blueprints
+注册蓝图
 ----------------------
 
 So how do you register that blueprint?  Like this::
@@ -116,13 +116,13 @@ On top of that you can register blueprints multiple times though not every
 blueprint might respond properly to that.  In fact it depends on how the
 blueprint is implemented if it can be mounted more than once.
 
-Blueprint Resources
+蓝图资源
 -------------------
 
 Blueprints can provide resources as well.  Sometimes you might want to
 introduce a blueprint only for the resources it provides.
 
-Blueprint Resource Folder
+蓝图资源文件夹
 `````````````````````````
 
 Like for regular applications, blueprints are considered to be contained
@@ -146,7 +146,7 @@ To quickly open sources from this folder you can use the
     with simple_page.open_resource('static/style.css') as f:
         code = f.read()
 
-Static Files
+静态文件
 ````````````
 
 A blueprint can expose a folder with static files by providing a path to a
@@ -166,7 +166,7 @@ it like you would do to the static folder of the application::
 
     url_for('admin.static', filename='style.css')
 
-Templates
+模板
 `````````
 
 If you want the blueprint to expose templates you can do that by providing
@@ -185,7 +185,7 @@ want to render the template ``'admin/index.html'`` and you have provided
 ``templates`` as a `template_folder` you will have to create a file like
 this: ``yourapplication/admin/templates/admin/index.html``.
 
-Building URLs
+构建 URLs
 -------------
 
 If you want to link from one page to another you can use the
@@ -202,3 +202,4 @@ you can use relative redirects by prefixing the endpoint with a dot only::
 
 This will link to ``admin.index`` for instance in case the current request
 was dispatched to any other admin blueprint endpoint.
+to any other admin blueprint endpoint.

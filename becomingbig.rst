@@ -5,7 +5,7 @@ Becoming Big
 
 Here are your options when growing your codebase or scaling your application.
 
-Read the Source.
+阅读源码
 ----------------
 
 Flask started in part to demonstrate how to build your own framework on top of
@@ -29,7 +29,7 @@ Flask extensions.  Explore the many `extensions
 <http://flask.pocoo.org/extensions/>`_ in the community, and look for patterns to
 build your own extensions if you do not find the tools you need.
 
-Subclass.
+继承.
 ---------
 
 The :class:`~flask.Flask` class has many methods designed for subclassing. You
@@ -46,7 +46,7 @@ and changes at the layer between your Flask application and your HTTP
 server. Werkzeug includes several `middlewares
 <http://werkzeug.pocoo.org/docs/middlewares/>`_.
 
-Fork.
+分支.
 -----
 
 If none of the above options work, fork Flask.  The majority of code of Flask
@@ -91,7 +91,7 @@ majority of servers are using either threads, greenlets or separate
 processes to achieve concurrency which are all methods well supported by
 the underlying Werkzeug library.
 
-Discuss with the community.
+社区谈论.
 ---------------------------
 
 The Flask developers keep the framework accessible to users with codebases big
@@ -99,3 +99,4 @@ and small. If you find an obstacle in your way, caused by Flask, don't hesitate
 to contact the developers on the mailinglist or IRC channel.  The best way for
 the Flask and Flask extension developers to improve the tools for larger
 applications is getting feedback from users.
+dback from users.

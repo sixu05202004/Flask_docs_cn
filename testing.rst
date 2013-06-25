@@ -1,6 +1,6 @@
 .. _testing:
 
-测试Flask应用
+测试 Flask 应用
 ==========================
 
    **未经测试的东西是不完整的**
@@ -9,8 +9,8 @@
 现有的代码和未经测试的应用程序的开发人员往往会变得相当偏执。如果应用程序有自动测试，
 您可以放心地进行更改并立即知道是否有任何问题。
 
-Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 :class:`~werkzeug.test.Client` 暴露以及为你处理本地上下文。
-然后你可以使用你最喜爱的测试解决方案。在本文档中我们将使用预装在Python的 :mod:`unittest` 包。
+Flask 提供了一种测试你的应用的方式，它通过使得 Werkzeug 测试 :class:`~werkzeug.test.Client` 暴露以及为你处理本地上下文。
+然后你可以使用你最喜爱的测试解决方案。在本文档中我们将使用预装在 Python 的 :mod:`unittest` 包。
 
 应用程序
 ---------------
@@ -24,7 +24,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 测试骨架
 --------------------
 
-为了测试应用，我们添加第二个模块(`flaskr_tests.py`)以及在里面创建一个unittest骨架::
+为了测试应用，我们添加第二个模块( `flaskr_tests.py` )以及在里面创建一个 unittest 骨架::
 
     import os
     import flaskr
@@ -50,9 +50,9 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 这个函数在每个单独的测试函数运行之前被调用。为了在测试后删除数据库，我们在 :meth:`~unittest.TestCase.tearDown` 方法
 中关闭了这个文件并且从文件系统中删除了它。此外在初始化过程中 ``TESTING`` 配置标志被激活。这将会使得处理请求时的错误捕捉失效，以便于 您在进行对应用发出请求的测试时获得更好的错误反馈。
 
-这个测试客户端将提供给我们一个通向应用的简单接口，我们可以触发向应用发送请求的测试，并且此客户端也会为我们跟踪cookies。
+这个测试客户端将提供给我们一个通向应用的简单接口，我们可以触发向应用发送请求的测试，并且此客户端也会为我们跟踪 cookies。
 
-因为SQLite3是基于文件系统的，我们可以轻易使用tempfile模块来创建一个临时数据库并且初始化它。:func:`~tempfile.mkstemp` 函数为我们做了两件事情：它返回一个低级别的文件句柄和一个随机文件名 ​​，我们使用后者作为数据库名。我们只需保持 `db_fd` 以便
+因为 SQLite 3 是基于文件系统的，我们可以轻易使用 tempfile 模块来创建一个临时数据库并且初始化它。:func:`~tempfile.mkstemp` 函数为我们做了两件事情：它返回一个低级别的文件句柄和一个随机文件名 ​​，我们使用后者作为数据库名。我们只需保持 `db_fd` 以便
 我们能用 :func:`os.close` 函数来关闭这个文件。
 
 如果我们现在运行测试套件，我们将会看到如下的输出::
@@ -64,7 +64,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 
     OK
 
-即使没有运行任何实际的测试，我们已经知道我们的flaskr应用语法上是有效的，否则在导入的时候就会抛出异常中断。
+即使没有运行任何实际的测试，我们已经知道我们的 flaskr 应用语法上是有效的，否则在导入的时候就会抛出异常中断。
 
 第一个测试
 --------------
@@ -89,7 +89,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 
 注意到我们的测试函数以 `test` 开头；这使得 :mod:`unittest` 能够自动识别要运行的测试方法。
 
-通过使用`self.app.get`，我们可以发送一个HTTP `GET` 请求到一个给定路径的应用程序。返回的值将会是一个
+通过使用 `self.app.get`，我们可以发送一个HTTP `GET` 请求到一个给定路径的应用程序。返回的值将会是一个
 :class:`~flask.Flask.response_class` 对象。我们现在可以用 :attr:`~werkzeug.wrappers.BaseResponse.data` 属性
 检查从应用中返回的值（作为字符串）。在这种情况下，我们将确保 ``'No entries here so far'`` 是输出的一部分。
 
@@ -147,7 +147,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
         assert '&lt;Hello&gt;' in rv.data
         assert '<strong>HTML</strong> allowed here' in rv.data
 
-这里我们检查HTML允许在正文但是不允许在标题，这是预期的行为。
+这里我们检查 HTML 允许在正文但是不允许在标题，这是预期的行为。
 
 运行这个测试，我们应该得到三个通过的测试:::
 
@@ -191,7 +191,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 
 这对于打开数据库连接或者其他类似的操作来说，很可能是必须的，这视您应用的设计方式而定。
 
-如果您希望调用 :meth:`~flask.Flask.after_request` 函数， 您需要使用 :meth:`~flask.Flask.process_response` 方法。 这个方法需要您传入一个response对象::
+如果您希望调用 :meth:`~flask.Flask.after_request` 函数， 您需要使用 :meth:`~flask.Flask.process_response` 方法。 这个方法需要您传入一个 response 对象::
 
     app = flask.Flask(__name__)
 
@@ -252,7 +252,7 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
 .. versionadded:: 0.4
 
 有时触发一个通常的请求，但是将保持当前的上下文更长的时间，以便于附加的内省发生是很有用的。
-在Flask0.4中，在 `with` 块中使用 :meth:`~flask.Flask.test_client` 成为可能::
+在 Flask 0.4 中，在 `with` 块中使用 :meth:`~flask.Flask.test_client` 成为可能::
 
     app = flask.Flask(__name__)
 
@@ -276,9 +276,9 @@ Flask提供了一种测试你的应用的方式，它通过使得Werkzeug测试 
         rv = c.get('/')
         assert flask.session['foo'] == 42
 
-然而这并不能使它可能还可以修改会话或访问会话在发送请求之前。从Flask0.8开始，
-我们提供一个叫做”Session事务“的东西用于模拟适当的调用，从而在测试客户端的上下文中打开一个Session，
-并用于修改。在事务的结尾，Session将被恢复为原来的样子。这些都独立于Session的后端使用::
+然而这并不能使它可能还可以修改会话或访问会话在发送请求之前。从 Flask 0.8 开始，
+我们提供一个叫做 ” Session 事务“ 的东西用于模拟适当的调用，从而在测试客户端的上下文中打开一个 Session，
+并用于修改。在事务的结尾，Session 将被恢复为原来的样子。这些都独立于 Session 的后端使用::
 
     with app.test_client() as c:
         with c.session_transaction() as sess:

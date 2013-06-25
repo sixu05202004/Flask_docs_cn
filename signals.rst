@@ -1,53 +1,30 @@
 .. _signals:
 
-Signals
+信号
 =======
 
 .. versionadded:: 0.6
 
-Starting with Flask 0.6, there is integrated support for signalling in
-Flask.  This support is provided by the excellent `blinker`_ library and
-will gracefully fall back if it is not available.
+从 Flask 0.6 开始，Flask 中集成支持信号。这种支持是由优秀的 `blinker`_ 库提供，并且当它不可用时会优雅地退回。
 
-What are signals?  Signals help you decouple applications by sending
-notifications when actions occur elsewhere in the core framework or
-another Flask extensions.  In short, signals allow certain senders to
-notify subscribers that something happened.
+信号是什么？信号通过在核心框架的其它地方或 Flask 扩展的动作发生时的发送通知来帮助你解耦应用。
+简而言之，信号允许特定的发送端通知订阅者发生了什么。
 
-Flask comes with a couple of signals and other extensions might provide
-more.  Also keep in mind that signals are intended to notify subscribers
-and should not encourage subscribers to modify data.  You will notice that
-there are signals that appear to do the same thing like some of the
-builtin decorators do (eg: :data:`~flask.request_started` is very similar
-to :meth:`~flask.Flask.before_request`).  There are however difference in
-how they work.  The core :meth:`~flask.Flask.before_request` handler for
-example is executed in a specific order and is able to abort the request
-early by returning a response.  In contrast all signal handlers are
-executed in undefined order and do not modify any data.
+Flask 提供了一些信号且其它的扩展提供更多的信号。另外请注意信号是用于通知订阅者，而不应该鼓励订阅者修改数据。
+你会注意到信号看起来和一些内置的装饰器做同样的事情(如: :data:`~flask.request_started` 同 :meth:`~flask.Flask.before_request` 是非常类似)。然而在工作方式上它们存在不同。譬如核心的 :meth:`~flask.Flask.before_request` 处理程序以特定的顺 序执行，并且可以在返回响应之前放弃请求。相比之下，所有的信号处理器执行的顺序没有定义，并且不修改任何数据。
 
-The big advantage of signals over handlers is that you can safely
-subscribe to them for the split of a second.  These temporary
-subscriptions are helpful for unittesting for example.  Say you want to
-know what templates were rendered as part of a request: signals allow you
-to do exactly that.
+信号对比处理器最大的优势就是你可以在一瞬间安全地订阅它们。例如，这些临时的订阅对测试很有帮助。
+比如说你想要知道哪个模板被作为请求的一部分渲染：信号允许你完全地了解这些。
 
-Subscribing to Signals
+订阅信号
 ----------------------
 
-To subscribe to a signal, you can use the
-:meth:`~blinker.base.Signal.connect` method of a signal.  The first
-argument is the function that should be called when the signal is emitted,
-the optional second argument specifies a sender.  To unsubscribe from a
-signal, you can use the :meth:`~blinker.base.Signal.disconnect` method.
+你可以使用信号的 :meth:`~blinker.base.Signal.connect` 方法来订阅信号。第一个参数是信号发出时要调用的函数，第二个参数是可选的，用于确定信号的发送者。
+你可以用 :meth:`~blinker.base.Signal.disconnect` 方法来退订信号。
 
-For all core Flask signals, the sender is the application that issued the
-signal.  When you subscribe to a signal, be sure to also provide a sender
-unless you really want to listen for signals of all applications.  This is
-especially true if you are developing an extension.
+对于所有的核心 Flask 信号，发送者都是发出信号的应用。当你订阅一个信号，请 确保也提供一个发送者，除非你确实想监听全部应用的信号。这在你开发一个扩展的时候尤其正确。
 
-Here for example a helper context manager that can be used to figure out
-in a unittest which templates were rendered and what variables were passed
-to the template::
+比如这里有一个用于在单元测试中找出哪个模板被渲染和传入模板的变量的助手上下文管理器::
 
     from flask import template_rendered
     from contextlib import contextmanager
@@ -63,7 +40,7 @@ to the template::
         finally:
             template_rendered.disconnect(record, app)
 
-This can now easily be paired with a test client::
+现在可以轻松地与测试客户端配对::
 
     with captured_templates(app) as templates:
         rv = app.test_client().get('/')
@@ -73,19 +50,12 @@ This can now easily be paired with a test client::
         assert template.name == 'index.html'
         assert len(context['items']) == 10
 
-Make sure to subscribe with an extra ``**extra`` argument so that your
-calls don't fail if Flask introduces new arguments to the signals.
+确保订阅使用了一个额外的 ``**extra`` 参数，这样当 Flask 对信号引入新参数时你的调用不会失败。
 
-All the template rendering in the code issued by the application `app`
-in the body of the `with` block will now be recorded in the `templates`
-variable.  Whenever a template is rendered, the template object as well as
-context are appended to it.
+代码中，从 `with` 块的应用 `app` 中流出的渲染的所有模板现在会被记录到 `templates` 变量。无论何时模板被渲染，模板对象的上下文中添加上它。
 
-Additionally there is a convenient helper method
-(:meth:`~blinker.base.Signal.connected_to`).  that allows you to
-temporarily subscribe a function to a signal with a context manager on
-its own.  Because the return value of the context manager cannot be
-specified that way one has to pass the list in as argument::
+此外，也有一个方便的助手方法(:meth:`~blinker.base.Signal.connected_to`) ，它允许你临时地用它自己的上下文管理器把函数订阅到信号。因为上下文管理器的返回值不能按那种方法给定，
+则需要把列表作为参数传入::
 
     from flask import template_rendered
 
@@ -94,7 +64,7 @@ specified that way one has to pass the list in as argument::
             recorded.append((template, context))
         return template_rendered.connected_to(record, app)
 
-The example above would then look like this::
+上面的例子看起来像这样::
 
     templates = []
     with captured_templates(app, templates, **extra):
@@ -103,43 +73,32 @@ The example above would then look like this::
 
 .. admonition:: Blinker API Changes
 
-   The :meth:`~blinker.base.Signal.connected_to` method arrived in Blinker
-   with version 1.1.
+   :meth:`~blinker.base.Signal.connected_to` 方法出现于版本1.1中。
 
-Creating Signals
+创建信号
 ----------------
 
-If you want to use signals in your own application, you can use the
-blinker library directly.  The most common use case are named signals in a
-custom :class:`~blinker.base.Namespace`..  This is what is recommended
-most of the time::
+如果你要在自己的应用中使用信号，你可以直接使用 blinker 库。最常见的使用情况是命名一个自定义的 :class:`~blinker.base.Namespace` 的信号。这也是大多数时候推荐的做法::
 
     from blinker import Namespace
     my_signals = Namespace()
 
-Now you can create new signals like this::
+现在你可以像这样创建新的信号::
 
     model_saved = my_signals.signal('model-saved')
 
-The name for the signal here makes it unique and also simplifies
-debugging.  You can access the name of the signal with the
-:attr:`~blinker.base.NamedSignal.name` attribute.
+这里使用唯一的信号名并且简化调试。可以用 :attr:`~blinker.base.NamedSignal.name` 属性来访问信号名。
 
-.. admonition:: For Extension Developers
-
-   If you are writing a Flask extension and you want to gracefully degrade for
-   missing blinker installations, you can do so by using the
-   :class:`flask.signals.Namespace` class.
+.. admonition:: 对扩展开发者
+   
+   如果你正在编写一个 Flask 扩展，你想优雅地减少缺少 blinker 安装的影响，你可以这样做使用 :class:`flask.signals.Namespace` 类。
 
 .. _signals-sending:
 
-Sending Signals
+发送信号
 ---------------
 
-If you want to emit a signal, you can do so by calling the
-:meth:`~blinker.base.Signal.send` method.  It accepts a sender as first
-argument and optionally some keyword arguments that are forwarded to the
-signal subscribers::
+如果你想要发送信号，你可以通过调用 :meth:`~blinker.base.Signal.send` 方法来达到目的。它接受一个发件者作为第一个参数和一些可选的被转发到信号用户的关键字参数::
 
     class Model(object):
         ...
@@ -147,33 +106,27 @@ signal subscribers::
         def save(self):
             model_saved.send(self)
 
-Try to always pick a good sender.  If you have a class that is emitting a
-signal, pass `self` as sender.  If you emitting a signal from a random
-function, you can pass ``current_app._get_current_object()`` as sender.
+永远尝试选择一个合适的发送者。如果你有一个发出信号的类，把 self 作为发送者。如果你从一个随机的函数发出信号，把 ``current_app._get_current_object()`` 作为发送者。
 
-.. admonition:: Passing Proxies as Senders
+.. admonition:: 传入代理作为发送者
 
-   Never pass :data:`~flask.current_app` as sender to a signal.  Use
-   ``current_app._get_current_object()`` instead.  The reason for this is
-   that :data:`~flask.current_app` is a proxy and not the real application
-   object.
+   绝不要向信号传入 :data:`~flask.current_app` 作为发送者。相反使用 ``current_app._get_current_object()``。
+   这样做的理由是 :data:`~flask.current_app` 是一个代理不是真正的应用对象。
 
 
-Signals and Flask's Request Context
+信号与 Flask 的请求上下文
 -----------------------------------
 
-Signals fully support :ref:`request-context` when receiving signals.
-Context-local variables are consistently available between
-:data:`~flask.request_started` and :data:`~flask.request_finished`, so you can
-rely on :class:`flask.g` and others as needed.  Note the limitations described
-in :ref:`signals-sending` and the :data:`~flask.request_tearing_down` signal.
+信号在接受时，完全支持 :ref:`request-context` 。
+上下文本地的变量在 :data:`~flask.request_started` 和 :data:`~flask.request_finished` 一贯可用，
+所以你可以信任 :class:`flask.g` 和其它需要的东西。
+注意 :ref:`signals-sending` 和 :data:`~flask.request_tearing_down` 信号中描述的限制。
 
 
-Decorator Based Signal Subscriptions
+基于信号订阅的装饰器
 ------------------------------------
 
-With Blinker 1.1 you can also easily subscribe to signals by using the new
-:meth:`~blinker.base.NamedSignal.connect_via` decorator::
+在 Blinker 1.1 中通过使用新的 :meth:`~blinker.base.NamedSignal.connect_via` 装饰器你也能够轻易地订阅信号::
 
     from flask import template_rendered
 
@@ -181,21 +134,19 @@ With Blinker 1.1 you can also easily subscribe to signals by using the new
     def when_template_rendered(sender, template, context, **extra):
         print 'Template %s is rendered with %s' % (template.name, context)
 
-Core Signals
+核心信号
 ------------
 
 .. when modifying this list, also update the one in api.rst
 
-The following signals exist in Flask:
+Flask 中存在如下信号：
 
 .. data:: flask.template_rendered
    :noindex:
 
-   This signal is sent when a template was successfully rendered.  The
-   signal is invoked with the instance of the template as `template`
-   and the context as dictionary (named `context`).
+   当一个模版成功地渲染，这个信号会被发送。这个信号与模板实例 `template` 和上下文的词典（名为 `context` ）一起调用。
 
-   Example subscriber::
+   订阅示例::
 
         def log_template_renders(sender, template, context, **extra):
             sender.logger.debug('Rendering template "%s" with context %s',
@@ -207,13 +158,11 @@ The following signals exist in Flask:
 
 .. data:: flask.request_started
    :noindex:
+   
+   这个信号在建立请求上下文之外的任何请求处理开始前发送。因为请求上下文已经被绑定，
+   订阅者可以用 :class:`~flask.request` 之类的标准全局代理访问请求。
 
-   This signal is sent before any request processing started but when the
-   request context was set up.  Because the request context is already
-   bound, the subscriber can access the request with the standard global
-   proxies such as :class:`~flask.request`.
-
-   Example subscriber::
+   订阅示例::
 
         def log_request(sender, **extra):
             sender.logger.debug('Request context is set up')
@@ -224,10 +173,9 @@ The following signals exist in Flask:
 .. data:: flask.request_finished
    :noindex:
 
-   This signal is sent right before the response is sent to the client.
-   It is passed the response to be sent named `response`.
+   这个信号恰好在请求发送给客户端之前发送。它传递名为 `response` 的响应。
 
-   Example subscriber::
+   订阅示例::
 
         def log_response(sender, response, **extra):
             sender.logger.debug('Request context is about to close down.  '
@@ -239,12 +187,10 @@ The following signals exist in Flask:
 .. data:: flask.got_request_exception
    :noindex:
 
-   This signal is sent when an exception happens during request processing.
-   It is sent *before* the standard exception handling kicks in and even
-   in debug mode, where no exception handling happens.  The exception
-   itself is passed to the subscriber as `exception`.
+   这个信号在请求处理中抛出异常时发送。它在标准异常处理生效 *之前* ，甚至是在没有异常处理的情况下发送。
+   异常本身会通过 `exception` 传递到订阅函数。
 
-   Example subscriber::
+   订阅示例::
 
         def log_exception(sender, exception, **extra):
             sender.logger.debug('Got exception during processing: %s', exception)
@@ -255,12 +201,9 @@ The following signals exist in Flask:
 .. data:: flask.request_tearing_down
    :noindex:
 
-   This signal is sent when the request is tearing down.  This is always
-   called, even if an exception is caused.  Currently functions listening
-   to this signal are called after the regular teardown handlers, but this
-   is not something you can rely on.
+   这个信号在请求销毁时发送。它总是被调用，即使发生异常。当前监听这个信号的函数会在常规销毁处理后被调用，但这不是你可以信赖的。
 
-   Example subscriber::
+   订阅示例::
 
         def close_db_connection(sender, **extra):
             session.close()
@@ -268,19 +211,15 @@ The following signals exist in Flask:
         from flask import request_tearing_down
         request_tearing_down.connect(close_db_connection, app)
 
-   As of Flask 0.9, this will also be passed an `exc` keyword argument
-   that has a reference to the exception that caused the teardown if
-   there was one.
+   从 Flask 0.9 ，如果有异常它会被传递一个 `exc` 关键字参数引用导致销毁的异常。
 
 .. data:: flask.appcontext_tearing_down
    :noindex:
 
-   This signal is sent when the app context is tearing down.  This is always
-   called, even if an exception is caused.  Currently functions listening
-   to this signal are called after the regular teardown handlers, but this
-   is not something you can rely on.
+   这个信号在应用上下文销毁时发送。它总是被调用，即使发生异常。
+   当前监听这个信号的函数会在常规销毁处理后被调用，但这不是你可以信赖的。
 
-   Example subscriber::
+   订阅示例::
 
         def close_db_connection(sender, **extra):
             session.close()
@@ -288,18 +227,15 @@ The following signals exist in Flask:
         from flask import appcontext_tearing_down
         appcontext_tearing_down.connect(close_db_connection, app)
 
-   This will also be passed an `exc` keyword argument that has a reference
-   to the exception that caused the teardown if there was one.
+   如果有异常它会被传递一个 `exc` 关键字参数引用导致销毁的异常。
 
 .. data:: flask.appcontext_pushed
    :noindex:
 
-   This signal is sent when an application context is pushed.  The sender
-   is the application.  This is usually useful for unittests in order to
-   temporarily hook in information.  For instance it can be used to
-   set a resource early onto the `g` object.
+   当应用上下文被推入的时候，发送信号。应用是发送者。这个信号通常对才测试有用，能够临时地勾住( hook )信息。
+   比如它能够被用于早期设置一个资源到 `g` 对象。
 
-   Example usage::
+   用法示例::
 
         from contextlib import contextmanager
         from flask import appcontext_pushed
@@ -308,6 +244,44 @@ The following signals exist in Flask:
         def user_set(app, user):
             def handler(sender, **kwargs):
                 g.user = user
+            with appcontext_pushed.connected_to(handler, app):
+                yield
+
+   在测试代码中::
+
+        def test_user_me(self):
+            with user_set(app, 'john'):
+                c = app.test_client()
+                resp = c.get('/users/me')
+                assert resp.data == 'username=john'
+
+   .. versionadded:: 0.10
+
+.. data:: appcontext_popped
+
+   当应用的上下文被弹出的时候，信号被发送。应用就是发送者。这个信号一般随着 :data:`appcontext_tearing_down` 信号使用。
+
+   .. versionadded:: 0.10
+
+
+.. data:: flask.message_flashed
+   :noindex:
+
+   当应用闪现一个消息的时候发送信号。消息是作为 `message` 关键字参数并且类别是作为 `category`。
+
+   订阅示例::
+
+        recorded = []
+        def record(sender, message, category, **extra):
+            recorded.append((message, category))
+
+        from flask import message_flashed
+        message_flashed.connect(record, app)
+
+   .. versionadded:: 0.10
+
+.. _blinker: http://pypi.python.org/pypi/blinker
+     g.user = user
             with appcontext_pushed.connected_to(handler, app):
                 yield
 
