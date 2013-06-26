@@ -351,7 +351,11 @@ Flask 扩展应该力劝用户从 ``flask.ext.foo`` 导入，而不是 ``flask_f
 .. _OAuth 扩展: http://packages.python.org/Flask-OAuth/
 .. _邮件列表: http://flask.pocoo.org/mailinglist/
 .. _IRC 频道: http://flask.pocoo.org/community/irc/
- unless a dependency cannot be met because it is not
+
+
+
+
+ess a dependency cannot be met because it is not
     available on PyPI.
 7.  The extension must have documentation that uses one of the two Flask
     themes for Sphinx documentation.

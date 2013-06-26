@@ -281,45 +281,4 @@ Flask 中存在如下信号：
    .. versionadded:: 0.10
 
 .. _blinker: http://pypi.python.org/pypi/blinker
-     g.user = user
-            with appcontext_pushed.connected_to(handler, app):
-                yield
-
-   And in the testcode::
-
-        def test_user_me(self):
-            with user_set(app, 'john'):
-                c = app.test_client()
-                resp = c.get('/users/me')
-                assert resp.data == 'username=john'
-
-   .. versionadded:: 0.10
-
-.. data:: appcontext_popped
-
-   This signal is sent when an application context is popped.  The sender
-   is the application.  This usually falls in line with the
-   :data:`appcontext_tearing_down` signal.
-
-   .. versionadded:: 0.10
-
-
-.. data:: flask.message_flashed
-   :noindex:
-
-   This signal is sent when the application is flashing a message.  The
-   messages is sent as `message` keyword argument and the category as
-   `category`.
-
-   Example subscriber::
-
-        recorded = []
-        def record(sender, message, category, **extra):
-            recorded.append((message, category))
-
-        from flask import message_flashed
-        message_flashed.connect(record, app)
-
-   .. versionadded:: 0.10
-
-.. _blinker: http://pypi.python.org/pypi/blinker
+     

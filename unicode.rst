@@ -88,17 +88,3 @@ Unicode 以为着什么？
     3. 选择“ UTF-8 无 BOM ”作为编码
 
     同样也建议使用 Unix 的换行格式，可以在相同的面板中选择，但不是必须的。
- into your ``.emacs``
-    file::
-
-        (prefer-coding-system 'utf-8)
-        (setq default-buffer-file-coding-system 'utf-8)
-
--   Notepad++:
-
-    1. Go to *Settings -> Preferences ...*
-    2. Select the "New Document/Default Directory" tab
-    3. Select "UTF-8 without BOM" as encoding
-
-    It is also recommended to use the Unix newline format, you can select
-    it in the same panel but this is not a requirement.

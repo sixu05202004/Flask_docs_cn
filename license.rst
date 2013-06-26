@@ -41,7 +41,4 @@ Flask Artwork License
 ---------------------
 
 .. include:: artwork/LICENSE
-Flask Artwork License
----------------------
 
-.. include:: ../artwork/LICENSE

@@ -184,12 +184,4 @@ Pocoo 风格指引是所有 Pocoo 项目的风格指引，包括 Flask 。这份
         name = Column(String)
         #: the sha1 hash of the password + inline salt
         pw_hash = Column(String)
-matted with
-reStructuredText.  If a comment is used to document an attribute, put a
-colon after the opening pound sign (``#``)::
 
-    class User(object):
-        #: the name of the user as unicode string
-        name = Column(String)
-        #: the sha1 hash of the password + inline salt
-        pw_hash = Column(String)
