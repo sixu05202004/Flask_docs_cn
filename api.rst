@@ -10,7 +10,7 @@ parts where Flask depends on external libraries, we document the most
 important right here and provide links to the canonical documentation.
 
 
-Application Object
+应用对象
 ------------------
 
 .. autoclass:: Flask
@@ -18,14 +18,14 @@ Application Object
    :inherited-members:
 
 
-Blueprint Objects
+蓝图对象
 -----------------
 
 .. autoclass:: Blueprint
    :members:
    :inherited-members:
 
-Incoming Request Data
+传入请求数据
 ---------------------
 
 .. autoclass:: Request
@@ -134,7 +134,7 @@ Incoming Request Data
    just shows a quick overview of the most important ones.
 
 
-Response Objects
+响应对象
 ----------------
 
 .. autoclass:: flask.Response
@@ -153,7 +153,7 @@ Response Objects
       The response status as integer.
 
 
-Sessions
+会话
 --------
 
 If you have the :attr:`Flask.secret_key` set you can use sessions in Flask
@@ -199,7 +199,7 @@ To access the current session you can use the :class:`session` object:
       session will be deleted when the user closes the browser.
 
 
-Session Interface
+会话接口
 -----------------
 
 .. versionadded:: 0.8
@@ -244,7 +244,7 @@ implementation that Flask is using.
    app which converts the result to an integer automatically.
 
 
-Test Client
+测试客户端
 -----------
 
 .. currentmodule:: flask.testing
@@ -253,7 +253,7 @@ Test Client
    :members:
 
 
-Application Globals
+应用全局变量
 -------------------
 
 .. currentmodule:: flask
@@ -289,7 +289,7 @@ thing, like it does for :class:`request` and :class:`session`.
    This is a proxy.  See :ref:`notes-on-proxies` for more information.
 
 
-Useful Functions and Classes
+有用的函数和类
 ----------------------------
 
 .. data:: current_app
@@ -335,14 +335,14 @@ Useful Functions and Classes
 .. autoclass:: Markup
    :members: escape, unescape, striptags
 
-Message Flashing
+消息闪现
 ----------------
 
 .. autofunction:: flash
 
 .. autofunction:: get_flashed_messages
 
-JSON Support
+JSON 支持
 ------------
 
 .. module:: flask.json
@@ -401,7 +401,7 @@ you are using Flask 0.10 which implies that:
 .. autoclass:: JSONDecoder
    :members:
 
-Template Rendering
+渲染模版
 ------------------
 
 .. currentmodule:: flask
@@ -412,13 +412,13 @@ Template Rendering
 
 .. autofunction:: get_template_attribute
 
-Configuration
+配置
 -------------
 
 .. autoclass:: Config
    :members:
 
-Extensions
+扩展
 ----------
 
 .. data:: flask.ext
@@ -496,7 +496,7 @@ Useful Internals
 .. autoclass:: flask.blueprints.BlueprintSetupState
    :members:
 
-Signals
+信号
 -------
 
 .. when modifying this list, also update the one in signals.rst
@@ -590,7 +590,7 @@ Signals
 
 .. _blinker: http://pypi.python.org/pypi/blinker
 
-Class-Based Views
+基于类的视图
 -----------------
 
 .. versionadded:: 0.7
@@ -605,7 +605,7 @@ Class-Based Views
 
 .. _url-route-registrations:
 
-URL Route Registrations
+URL 路由注册
 -----------------------
 
 Generally there are three ways to define rules for the routing system:
@@ -702,7 +702,7 @@ instead of the `view_func` parameter.
 
 .. _view-func-options:
 
-View Function Options
+视图函数选项
 ---------------------
 
 For internal usage the view functions can have some attributes attached to
@@ -743,4 +743,6 @@ Full example::
     app.add_url_rule('/', index)
 
 .. versionadded:: 0.8
+   The `provide_automatic_options` functionality was added.
+
    The `provide_automatic_options` functionality was added.

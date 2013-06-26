@@ -264,10 +264,9 @@ Flask 0.8引入了示例文件夹。Flask 在很长时间使得直接引用相�
 
     app = Flask(__name__, instance_path='/path/to/instance/folder')
 
-Please keep in mind that this path *must* be absolute when provided.
+请注意给出的 *一定* 是绝对路径。
 
-If the `instance_path` parameter is not provided the following default
-locations are used:
+如果 `instance_path` 参数没有赋值，会适用下面默认的位置:
 
 -   已卸载的模块::
 
@@ -285,30 +284,24 @@ locations are used:
         $PREFIX/lib/python2.X/site-packages/myapp
         $PREFIX/var/myapp-instance
 
-    ``$PREFIX`` is the prefix of your Python installation.  This can be
-    ``/usr`` or the path to your virtualenv.  You can print the value of
-    ``sys.prefix`` to see what the prefix is set to.
+    $``$PREFIX`` 是你 Python 安装的前缀。这个前缀可以是 ``/usr`` 或者你 virtualenv 的路径。
+    你可以打印 ``sys.prefix`` 的值来查看前缀被设置成了什么。
 
-Since the config object provided loading of configuration files from
-relative filenames we made it possible to change the loading via filenames
-to be relative to the instance path if wanted.  The behavior of relative
-paths in config files can be flipped between “relative to the application
-root” (the default) to “relative to instance folder” via the
-`instance_relative_config` switch to the application constructor::
+
+既然配置对象提供从相对文件名来载入配置的方式，那么我们也使得它从相对实例 路径的文件名加载成为可能，
+如果你想这样做。配置文件中的相对路径的行为可以 在“相对应用的根目录”（默认）和 “相对实例文件夹”中切换，
+后者通过应用构造函 数的 `instance_relative_config` 开关实现::
 
     app = Flask(__name__, instance_relative_config=True)
 
-Here is a full example of how to configure Flask to preload the config
-from a module and then override the config from a file in the config
-folder if it exists::
+这里有一个配置 Flask 来从模块预载入配置并覆盖配置文件夹中配置文件(如果存在)的完整例子::
 
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object('yourapplication.default_settings')
     app.config.from_pyfile('application.cfg', silent=True)
 
-The path to the instance folder can be found via the
-:attr:`Flask.instance_path`.  Flask also provides a shortcut to open a
-file from the instance folder with :meth:`Flask.open_instance_resource`.
+实例文件夹的路径可以在 :attr:`Flask.instance_path` 找到。 Flask 也提供了 一个打开实例文件夹中文件的捷径，
+就是 :meth:`Flask.open_instance_resource`  。
 
 两者使用的示例::
 

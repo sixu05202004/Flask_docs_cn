@@ -1,108 +1,79 @@
 .. _sqlite3:
 
-Using SQLite 3 with Flask
+在 Flask 中使用 SQLite 3
 =========================
 
-In Flask you can implement the opening of database connections on demand
-and closing it when the context dies (usually at the end of the request)
-easily.
+在 Flask 中，通过使用特殊的 :class:`~flask.g` 对象可以使用
+:meth:`~flask.Flask.before_request` 和 :meth:`~flask.Flask.teardown_request`
+在请求开始前打开数据库连接，在请求结束后关闭连接。
 
-Here is a simple example of how you can use SQLite 3 with Flask::
+以下是一个在 Flask 中使用 SQLite 3 的例子::
 
     import sqlite3
     from flask import g
 
     DATABASE = '/path/to/database.db'
 
-    def get_db():
-        db = getattr(g, '_database', None)
-        if db is None:
-            db = g._database = connect_to_database()
-        return db
+    def connect_db():
+        return sqlite3.connect(DATABASE)
 
-    @app.teardown_appcontext
-    def close_connection(exception):
-        db = getattr(g, '_database', None)
-        if db is not None:
-            db.close()
+    @app.before_request
+    def before_request():
+        g.db = connect_db()
 
-All the application needs to do in order to now use the database is having
-an active application context (which is always true if there is an request
-in flight) or to create an application context itself.  At that point the
-``get_db`` function can be used to get the current database connection.
-Whenever the context is destroyed the database connection will be
-terminated.
-
-Note: if you use Flask 0.9 or older you need to use
-``flask._app_ctx_stack.top`` instead of ``g`` as the :data:`flask.g`
-object was bound to the request and not application context.
-
-Example::
-
-    @app.route('/')
-    def index():
-        cur = get_db().cursor()
-        ...
-
+    @app.teardown_request
+    def teardown_request(exception):
+        if hasattr(g, 'db'):
+            g.db.close()
 
 .. note::
 
-   Please keep in mind that the teardown request and appcontext functions
-   are always executed, even if a before-request handler failed or was
-   never executed.  Because of this we have to make sure here that the
-   database is there before we close it.
+   请记住，销毁函数是一定会被执行的。即使请求前处理器执行失败或根本没有执行，
+   销毁函数也会被执行。因此，我们必须保证在关闭数据库连接之前数据库连接是存在
+   的。
 
-Connect on Demand
+按需连接
 -----------------
 
-The upside of this approach (connecting on first use) is that this will
-only opening the connection if truly necessary.  If you want to use this
-code outside a request context you can use it in a Python shell by opening
-the application context by hand::
+上述方式的缺点是只有在 Flask 执行了请求前处理器时才有效。如果你尝试在脚本或者
+Python 解释器中使用数据库，那么你必须这样来执行数据库连接代码::
 
-    with app.app_context():
-        # now you can use get_db()
+    with app.test_request_context():
+        app.preprocess_request()
+        # now you can use the g.db object
+
+这样虽然不能排除对请求环境的依赖，但是可以按需连接数据库::
+
+    def get_connection():
+        db = getattr(g, '_db', None)
+        if db is None:
+            db = g._db = connect_db()
+        return db
+
+这样做的缺点是必须使用 ``db = get_connection()`` 来代替直接使用 ``g.db`` 。
 
 .. _easy-querying:
 
-Easy Querying
+简化查询
 -------------
 
-Now in each request handling function you can access `g.db` to get the
-current open database connection.  To simplify working with SQLite, a
-row factory function is useful.  It is executed for every result returned
-from the database to convert the result.  For instance in order to get
-dictionaries instead of tuples this can be used::
+现在，在每个请求处理函数中可以通过访问 `g.db` 来得到当前打开的数据库连接。为了
+简化 SQLite 的使用，这里有一个有用的辅助函数::
 
-    def make_dicts(cursor, row):
-        return dict((cur.description[idx][0], value)
-                    for idx, value in enumerate(row))
-
-    db.row_factory = make_dicts
-
-Or even simpler::
-
-    db.row_factory = sqlite3.Row
-
-Additionally it is a good idea to provide a query function that combines
-getting the cursor, executing and fetching the results::
-    
     def query_db(query, args=(), one=False):
-        cur = get_db().execute(query, args)
-        rv = cur.fetchall()
-        cur.close()
+        cur = g.db.execute(query, args)
+        rv = [dict((cur.description[idx][0], value)
+                   for idx, value in enumerate(row)) for row in cur.fetchall()]
         return (rv[0] if rv else None) if one else rv
 
-This handy little function in combination with a row factory makes working
-with the database much more pleasant than it is by just using the raw
-cursor and connection objects.
+使用这个实用的小函数比直接使用原始指针和转接对象要舒服一点。
 
-Here is how you can use it::
+可以这样使用上述函数::
 
     for user in query_db('select * from users'):
         print user['username'], 'has the id', user['user_id']
 
-Or if you just want a single result::
+只需要得到单一结果的用法::
 
     user = query_db('select * from users where username = ?',
                     [the_username], one=True)
@@ -111,28 +82,26 @@ Or if you just want a single result::
     else:
         print the_username, 'has the id', user['user_id']
 
-To pass variable parts to the SQL statement, use a question mark in the
-statement and pass in the arguments as a list.  Never directly add them to
-the SQL statement with string formatting because this makes it possible
-to attack the application using `SQL Injections
-<http://en.wikipedia.org/wiki/SQL_injection>`_.
+如果要给 SQL 语句传递参数，请在语句中使用问号来代替参数，并把参数放在一个列表中
+一起传递。不要用字符串格式化的方式直接把参数加入 SQL 语句中，这样会给应用带来
+`SQL 注入 <http://en.wikipedia.org/wiki/SQL_injection>`_ 的风险。
 
-Initial Schemas
+初始化模式
 ---------------
 
-Relational databases need schemas, so applications often ship a
-`schema.sql` file that creates the database.  It's a good idea to provide
-a function that creates the database based on that schema.  This function
-can do that for you::
+关系数据库是需要模式的，因此一个应用常常需要一个 `schema.sql` 文件来创建
+数据库。因此我们需要使用一个函数来其于模式创建数据库。下面这个函数可以完成这个
+任务::
 
+    from contextlib import closing
+    
     def init_db():
-        with app.app_context():
-            db = get_db()
-            with app.open_resource('schema.sql', mode='r') as f:
+        with closing(connect_db()) as db:
+            with app.open_resource('schema.sql') as f:
                 db.cursor().executescript(f.read())
             db.commit()
 
-You can then create such a database from the python shell:
+可以使用上述函数在 Python 解释器中创建数据库：
 
 >>> from yourapplication import init_db
 >>> init_db()

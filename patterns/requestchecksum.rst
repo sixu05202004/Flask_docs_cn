@@ -1,18 +1,11 @@
-Request Content Checksums
+请求内容校验
 =========================
 
-Various pieces of code can consume the request data and preprocess it.
-For instance JSON data ends up on the request object already read and
-processed, form data ends up there as well but goes through a different
-code path.  This seems inconvenient when you want to calculate the
-checksum of the incoming request data.  This is necessary sometimes for
-some APIs.
+各种代码片断中可以消耗请求数据和处理它。比如JSON数据已经阅读并处理请求对象，表单数据结束了，但通过不同的代码路径。这似乎是不方便的，当你想要传入的请求数据来计算校验和。这是必要的，有时一些API。
 
-Fortunately this is however very simple to change by wrapping the input
-stream.
+幸运的是，然而，这是非常简单的更改，包装的输入流。
 
-The following example calculates the SHA1 checksum of the incoming data as
-it gets read and stores it in the WSGI environment::
+下面的例子计算SHA1校验传入的数据，因为它被读取，并将其存储在WSGI环境::
 
     import hashlib
 
@@ -38,12 +31,10 @@ it gets read and stores it in the WSGI environment::
         env['wsgi.input'] = stream
         return stream._hash
 
-To use this, all you need to do is to hook the calculating stream in
-before the request starts consuming data.  (Eg: be careful accessing
-``request.form`` or anything of that nature.  ``before_request_handlers``
-for instance should be careful not to access it).
+要使用此功能，所有你需要做的是挂钩的计算请求之前开始消耗数据流。
+（例如：小心访问的 ``request.form`` 或任何这种性质的。 例如 ``before_request_handlers`` 应小心，不要访问）。
 
-Example usage::
+使用示例::
 
     @app.route('/special-api', methods=['POST'])
     def special_api():

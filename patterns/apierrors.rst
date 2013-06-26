@@ -1,23 +1,18 @@
-Implementing API Exceptions
+实现 API 异常
 ===========================
 
-It's very common to implement RESTful APIs on top of Flask.  One of the
-first thing that developers run into is the realization that the builtin
-exceptions are not expressive enough for APIs and that the content type of
-``text/html`` they are emitting is not very useful for API consumers.
+在Flask上层实现 RESTful APIs 是非常常见的。开发者碰到的第一件事情就是内置的异常对于 APIs 
+是表达性不足并且使用的内容格式 ``text/html`` 对于 API 使用者用处不大。
 
-The better solution than using ``abort`` to signal errors for invalid API
-usage is to implement your own exception type and install an error handler
-for it that produces the errors in the format the user is expecting.
+比 ``abort``  更好的解决方案就是实现自己的异常类型和安装的错误处理器，产生用户期待错误的格式。
 
-Simple Exception Class
+简单的异常类
 ----------------------
 
-The basic idea is to introduce a new exception that can take a proper
-human readable message, a status code for the error and some optional
-payload to give more context for the error.
+其基本思路是引入一个新的异常，该异常可以采取一个适当的人类可读的消息，一个状态的错误代码和
+一些可选的提供更多的错误上下文内容。
 
-This is a simple example::
+这是一个简单的例子::
 
     from flask import jsonify
 
@@ -36,16 +31,12 @@ This is a simple example::
             rv['message'] = self.message
             return rv
 
-A view can now raise that exception with an error message.  Additionally
-some extra payload can be provided as a dictionary through the `payload`
-parameter.
+视图现在可以引起一个带有错误信息的异常。另外一些附加的东西可以通过 `payload` 参数以字典形式提供。
 
-Registering an Error Handler
+注册一个错误处理器
 ----------------------------
 
-At that point views can raise that error, but it would immediately result
-in an internal server error.  The reason for this is that there is no
-handler registered for this error class.  That however is easy to add::
+在这个时候视图可以引起一个错误，但是它会立即导致内部服务器错误。原因是没有为这个错误类注册处理器。::
 
     @app.errorhandler(InvalidAPIUsage)
     def handle_invalid_usage(error):
@@ -53,10 +44,10 @@ handler registered for this error class.  That however is easy to add::
         response.status_code = error.status_code
         return response
 
-Usage in Views
+视图中的用法
 --------------
 
-Here is how a view can use that functionality::
+这里是视图使用这个函数的方法::
 
     @app.route('/foo')
     def get_foo():
