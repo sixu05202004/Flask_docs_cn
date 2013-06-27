@@ -61,7 +61,7 @@ URLs。
 关于此更多的信息，请看 :ref:`extension-dev`。
 
 应用上下文的用法
--------------
+-----------------
 
 应用上下文通常是用来缓存那些用来请求之前创建的或者请求使用情况下的资源。例如数据库连接是注定要使用应用上下文。
 存储的东西时应该为应用程序上下文选择唯一的名称，因为这是一个 Flask 应用和扩展之间共享的地方。
@@ -97,7 +97,7 @@ URLs。
     db = LocalProxy(get_db)
 
 这种方式下用户可以直接访问 ``db`` ，它内部调用了``get_db()`` 。
- flask import g
+sk import g
 
     def get_db():
         db = getattr(g, '_database', None)

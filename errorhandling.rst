@@ -144,8 +144,8 @@ Flask 使用 Python 内置的日志系统，它实际上可以发送错误邮件
 | ``%(lineno)d``   | 日志记录调用所在的源文件行的行号（如果可用）。     |
 +------------------+----------------------------------------------------+
 | ``%(asctime)s``  | LogRecord创建时可读的时间。默认的形式是            |
-|                  | ``"2003-07-08 16:49:45,896"`` (逗号后的数字        |
-|                  |  时间的毫秒部分).  它可以通过继承格式并且重载      |
+|                  | ``"2003-07-08 16:49:45,896"``                      |
+|                  | (逗号后的数字时间的毫秒部分)。通过继承格式并且重载 |
 |                  | :meth:`~logging.Formatter.formatTime` 方法改变。   |
 +------------------+----------------------------------------------------+
 | ``%(message)s``  | 记录的消息，记为 ``msg % args`` 。                 |
@@ -234,5 +234,7 @@ SQLAlchemy 在自己核心代码中大量使用了日志。尽管在 :mod:`loggi
            pass
        app.run(use_debugger=use_debugger, debug=app.debug,
                use_reloader=use_debugger, host='0.0.0.0')
+
+
 e_debugger=use_debugger, debug=app.debug,
                use_reloader=use_debugger, host='0.0.0.0')

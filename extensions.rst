@@ -1,13 +1,13 @@
 Flask 扩展
 ================
 
-Flask扩展多方面地扩充了Flask功能。例如它们添加了数据库支持以及其它常见任务。
+Flask 扩展多方面地扩充了 Flask 功能。例如它们添加了数据库支持以及其它常见任务。
 
 查找扩展
 ------------------
 
-Flask扩展被列出在 `Flask Extension Registry`_  上并且能够用 ``easy_install`` 或者 ``pip`` 下载。
-如果你把一个Flask扩展作为依赖添加到你的 ``requirements.rst`` 或者 ``setup.py`` 文件，它们通常用一个简单的
+Flask 扩展被列出在 `Flask Extension Registry`_  上并且能够用 ``easy_install`` 或者 ``pip`` 下载。
+如果你把一个 Flask 扩展作为依赖添加到你的 ``requirements.rst`` 或者 ``setup.py`` 文件，它们通常用一个简单的
 命令安装或者在应用安装时被安装。
 
 使用扩展
@@ -35,5 +35,7 @@ Flask 0.8 以前的 Flask
 一旦激活了 ``flaskext_compat`` 模块，就会存在 :data:`flask.ext` ，并且你可以从那里开始导入。
 
 .. _Flask Extension Registry: http://flask.pocoo.org/extensions/
+
 .. _flaskext_compat.py: https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py
-. _flaskext_compat.py: https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py
+
+ext_compat.py: https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py

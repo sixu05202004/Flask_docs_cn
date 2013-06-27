@@ -5,7 +5,7 @@
 
 Flask 依赖两个外部库， `Werkzeug
 <http://werkzeug.pocoo.org/>`_ 和 `Jinja2 <http://jinja.pocoo.org/2/>`_。Werkzeug
-是一个 WSGI 工具集，它是web应用程序和用于开发和部署的服务器之间的标准接口。Jinja2 负责渲染模板。
+是一个 WSGI 工具集，它是 web 应用程序和用于开发和部署的服务器之间的标准接口。Jinja2 负责渲染模板。
 
 因此怎样才能快速地安装这一切了？你有很多种方法去安装，但是最简单粗暴的方式就是 virtualenv，
 让我们首先来看看它。

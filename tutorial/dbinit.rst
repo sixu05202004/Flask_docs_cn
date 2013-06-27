@@ -40,8 +40,6 @@ SQLite 3 或者其它事务数据库不会这么做。
 
 .. admonition:: Troubleshooting
 
-   If you get an exception later that a table cannot be found check that
-   you did call the `init_db` function and that your table names are
-   correct (singular vs. plural for example).
+   如果你后面得到一个表不能找到的异常，请检查你是否调用了 `init_db` 函数以及你的表名是否正确 (例如： singular vs. plural)。
 
 请继续浏览 :ref:`tutorial-dbcon` 。

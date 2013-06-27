@@ -147,7 +147,8 @@ Flask 永远不会包含数据库层，也不会有表单库或是这个方向�
 数据库。
 
 Flask 的思想是为所有应用建立一个良好的基础，其余的一切都取决于你和扩展。
-t of threads and make
+
+ of threads and make
 large applications harder to maintain.  However Flask is just not designed
 for large applications or asynchronous servers.  Flask wants to make it
 quick and easy to write a traditional web application.

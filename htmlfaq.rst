@@ -179,7 +179,8 @@ HTML5 添加了许多新特性来使得 Web 应用易于编写和使用。
 -   它易于编写，而且更简洁。
 
 对于大多数应用，使用 HTML5 无疑比 XHTML 要好。
- sadly, currently leads in market share)
+
+sadly, currently leads in market share)
     has poor support for XHTML.
 -   Many JavaScript libraries also do not support XHTML, due to the more
     complicated namespacing API it requires.

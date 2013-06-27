@@ -150,7 +150,8 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
 
     url_for('.index')
 
-这个案例中，它实际上链接到 ``admin.index`` ，假如请求被分派到任何其它的 admin 蓝图端点。e ``'admin/index.html'`` and you have provided
+
+��个案例中，它实际上链接到 ``admin.index`` ，假如请求被分派到任何其它的 admin 蓝图端点。e ``'admin/index.html'`` and you have provided
 ``templates`` as a `template_folder` you will have to create a file like
 this: ``yourapplication/admin/templates/admin/index.html``.
 
