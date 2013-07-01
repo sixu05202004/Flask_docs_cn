@@ -28,7 +28,7 @@ Jinja 配置
 
    .. versionadded:: 0.6
 
-  .. versionchanged:: 0.10
+   .. versionchanged:: 0.10
      现在一直可用，即使是导入的模版。
 
 .. data:: request

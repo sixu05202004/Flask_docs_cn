@@ -1,6 +1,6 @@
 .. _tutorial-introduction:
 
-介绍Flaskr
+介绍 Flaskr
 ==================
 
 这里我们将称我们的博客应用为 flaskr，也可以取一个不那么 web 2.0 的名字。基本上我们想要它做如下的事情：
