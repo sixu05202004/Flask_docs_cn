@@ -5,34 +5,27 @@
 
 .. versionadded:: 0.7
 
-Flask 使用了 *蓝图* 的概念在一个应用或者跨应用中构建应用组件以及支持通用模式。
-蓝图很好地简化了大型应用工作的方式，并提供给 Flask 扩展在应用上注册操作的核心方法。
-一个 :class:`Blueprint` 对象与 :class:`Flask` 应用对象的工作方式很像，但它确实不是一个应用，
-而是一个描述如何构建或扩展应用的 *蓝图* 。
+Flask 使用了 *蓝图* 的概念在一个应用或者跨应用中构建应用组件以及支持通用模式。 蓝图很好地简化了大型应用工作的方式，并提供给 Flask 扩展在应用上注册操作的核心方法。 一个 :class:`Blueprint` 对象与 :class:`Flask` 应用对象的工作方式很像，但它确实不是一个应用， 而是一个描述如何构建或扩展应用的 *蓝图* 。
 
 为什么用蓝图？
 ---------------
 
-Flask中的蓝图旨在针对这些情况：
+Flask中的蓝图旨在针对这些情况:
 
-* 把一个应用分解成一系列的蓝图。对于大型的应用是理想化的；一个项目能实例化一个应用，
-  初始化一些扩展，以及注册一系列的蓝图。
-* 以一个 URL 前缀和/或子域在一个应用上注册蓝图。
-  URL 前缀/子域名中的参数即成为这个蓝图下的所有视图函数的共同的视图参数（默认情况下）。
+* 把一个应用分解成一系列的蓝图。对于大型的应用是理想化的；一个项目能实例化一个应用， 初始化一些扩展，以及注册一系列的蓝图。
+* 以一个 URL 前缀和/或子域在一个应用上注册蓝图。 URL 前缀/子域名中的参数即成为这个蓝图下的所有视图函数的共同的视图参数（默认情况下）。
 * 在一个应用中用不同的 URL 规则多次注册一个蓝图。
-* 通过蓝图提供模板过滤器、静态文件、模板和其它功能。一个蓝图不一定要实现应用或视图函数
+* 通过蓝图提供模板过滤器、静态文件、模板和其它功能。一个蓝图不一定要实现应用或视图函数。
 * 初始化一个 Flask 扩展时，在这些情况中注册蓝图。
 
-Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用——它是可以注册，甚至 可以多次注册到应用上的操作集合。为什么不使用多个应用对象？你可以做到那样 （见 :ref:`app-dispatch` ），但是你的应用会有分开的配置，并在 WSGI 层管理。
+Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用 -- 它是可以注册，甚至 可以多次注册到应用上的操作集合。为什么不使用多个应用对象？你可以做到那样 （见 :ref:`app-dispatch` ），但是你的应用会有分开的配置，并在 WSGI 层管理。
 
 蓝图作为 Flask 层提供分割的替代，共享应用配置，并且可以更改所注册的应用对 象。其短板是你不能在应用创建后撤销注册一个蓝图而不销毁整个应用对象。
 
 蓝图的概念
 -------------------------
 
-蓝图的基本设想是它们记录注册到一个应用时的操作执行情况。
-当从一个端点到另一端分发请求和生成 URL 时，Flask 关联视图函数和蓝图。
-
+蓝图的基本设想是它们记录注册到一个应用时的操作执行情况。 当从一个端点到另一端分发请求和生成 URL 时，Flask 关联视图函数和蓝图。
 
 第一个蓝图
 ------------------
@@ -53,9 +46,7 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
         except TemplateNotFound:
             abort(404)
 
-当我们使用 ``@simple_page.route`` 装饰器绑定函数时，蓝图会记录注册 `show` 函数注册到应用的意图，
-当它之后被注册。此外，它会给函数名加上由 :class:`Blueprint` 的构造函数中给出的蓝图的名称作为前缀
-(在此例中是 ``simple_page`` )。
+当我们使用 ``@simple_page.route`` 装饰器绑定函数时，蓝图会记录注册 `show` 函数注册到应用的意图， 当它之后被注册。此外，它会给函数名加上由 :class:`Blueprint` 的构造函数中给出的蓝图的名称作为前缀 (在此例中是 ``simple_page`` )。
 
 注册蓝图
 ----------------------
@@ -86,8 +77,7 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
      <Rule '/pages/<page>' (HEAD, OPTIONS, GET) -> simple_page.show>,
      <Rule '/pages/' (HEAD, OPTIONS, GET) -> simple_page.show>]
 
-你可以注册多次，虽然不是每一个蓝图蓝图可能会作出适当反应的顶部。
-事实上，它取决于如何实施的蓝图，如果它可以安装多于一次。
+你可以注册多次，虽然不是每一个蓝图蓝图可能会作出适当反应的顶部。 事实上，它取决于如何实施的蓝图，如果它可以安装多于一次。
 
 蓝图资源
 -------------------
@@ -97,12 +87,9 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
 蓝图资源文件夹
 `````````````````````````
 
-与常规应用一样，蓝图被认为是包含在一个文件夹中。虽然多个蓝图可以源自相同的文件夹中，
-它并不必须是这种情况并且通常不建议这样做。
+与常规应用一样，蓝图被认为是包含在一个文件夹中。虽然多个蓝图可以源自相同的文件夹中， 它并不必须是这种情况并且通常不建议这样做。
 
-这个文件夹会从 :class:`Blueprint` 的第二个参数中推断出来，通常是 `__name__` 。 
-这个参数决定对应蓝图的是哪个逻辑的 Python 模块或包。如果它指向一个存在的 Python 包，这个包（通常是文件系统中的文件夹）就是资源文件夹。如果是一个模块， 
-模块所在的包就是资源文件夹。你可以访问 :attr:`Blueprint.root_path` 属性来查看资源文件夹什么::
+这个文件夹会从 :class:`Blueprint` 的第二个参数中推断出来，通常是 `__name__` 。 这个参数决定对应蓝图的是哪个逻辑的 Python 模块或包。如果它指向一个存在的 Python 包，这个包（通常是文件系统中的文件夹）就是资源文件夹。如果是一个模块， 模块所在的包就是资源文件夹。你可以访问 :attr:`Blueprint.root_path` 属性来查看资源文件夹什么::
 
     >>> simple_page.root_path
     '/Users/username/TestProject/yourapplication'
@@ -119,8 +106,7 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
 
     admin = Blueprint('admin', __name__, static_folder='static')
 
-默认情况下，路径最右边的部分就是它在 web 上所公开的地址。因为这里这个文件夹叫做 ``static`` ，
-它会在蓝图 + ``/static`` 的位置上可用。也就是说，蓝图为 ``/admin`` 把静态文件夹注册到 ``/admin/static`` 。
+默认情况下，路径最右边的部分就是它在 web 上所公开的地址。因为这里这个文件夹叫做 ``static`` ， 它会在蓝图 + ``/static`` 的位置上可用。也就是说，蓝图为 ``/admin`` 把静态文件夹注册到 ``/admin/static`` 。
 
 最后是命名的 `blueprint_name.static` ，这样你可以生成它的 URL ，就像你对应用的静态文件夹所做的那样::
 
@@ -133,11 +119,9 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
 
     admin = Blueprint('admin', __name__, template_folder='templates')
 
-像对待静态文件一样，路径可以是绝对的或是相对蓝图资源文件夹的。模板文件夹会 被加入到模板的搜索路径中，但是比实际的应用模板文件夹优先级低。
-这样，你可以容易地在实际的应用中覆盖蓝图提供的模板。
+像对待静态文件一样，路径可以是绝对的或是相对蓝图资源文件夹的。模板文件夹会 被加入到模板的搜索路径中，但是比实际的应用模板文件夹优先级低。 这样，你可以容易地在实际的应用中覆盖蓝图提供的模板。
 
-那么当你有一个 ``yourapplication/admin`` 文件夹中的蓝图并且你想要渲染 ``'admin/index.html'`` 模板，
-且你已经提供了 ``templates`` 作为 `template_folder` ，你需要这样创建文件: ``yourapplication/admin/templates/admin/index.html``。
+那么当你有一个 ``yourapplication/admin`` 文件夹中的蓝图并且你想要渲染 ``'admin/index.html'`` 模板， 且你已经提供了 ``templates`` 作为 `template_folder` ，你需要这样创建文件: ``yourapplication/admin/templates/admin/index.html``。
 
 构建 URLs
 -------------
@@ -150,26 +134,4 @@ Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用�
 
     url_for('.index')
 
-
-��个案例中，它实际上链接到 ``admin.index`` ，假如请求被分派到任何其它的 admin 蓝图端点。e ``'admin/index.html'`` and you have provided
-``templates`` as a `template_folder` you will have to create a file like
-this: ``yourapplication/admin/templates/admin/index.html``.
-
-构建 URLs
--------------
-
-If you want to link from one page to another you can use the
-:func:`url_for` function just like you normally would do just that you
-prefix the URL endpoint with the name of the blueprint and a dot (``.``)::
-
-    url_for('admin.index')
-
-Additionally if you are in a view function of a blueprint or a rendered
-template and you want to link to another endpoint of the same blueprint,
-you can use relative redirects by prefixing the endpoint with a dot only::
-
-    url_for('.index')
-
-This will link to ``admin.index`` for instance in case the current request
-was dispatched to any other admin blueprint endpoint.
-to any other admin blueprint endpoint.
+这个案例中，它实际上链接到 ``admin.index`` ，假如请求被分派到任何其它的 admin 蓝图端点。
