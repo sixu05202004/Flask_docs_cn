@@ -152,24 +152,4 @@ Flask 中提供的一些对象是其它对象的代理。背后的原因是，�
 从 Flask 0.7 开始，我们设定 ``PRESERVE_CONTEXT_ON_EXCEPTION`` 配置变量来更好地控制该行为。这个值默认与 ``DEBUG`` 的设置相关。当应用工作在调试模式下时，上下文会被保护，而生产模式下相反。
 
 不要在生产模式强制激活 ``PRESERVE_CONTEXT_ON_EXCEPTION`` ，因为它会导致在 异常时应用的内存泄露。不过，它在开发时获取开发模式下相同的错误行为来试图调试一个只有生产设置下才发生的错误时很有用。
-or
------------------------------
 
-If an error occurs or not, at the end of the request the request context
-is popped and all data associated with it is destroyed.  During
-development however that can be problematic as you might want to have the
-information around for a longer time in case an exception occurred.  In
-Flask 0.6 and earlier in debug mode, if an exception occurred, the
-request context was not popped so that the interactive debugger can still
-provide you with important information.
-
-Starting with Flask 0.7 you have finer control over that behavior by
-setting the ``PRESERVE_CONTEXT_ON_EXCEPTION`` configuration variable.  By
-default it's linked to the setting of ``DEBUG``.  If the application is in
-debug mode the context is preserved, in production mode it's not.
-
-Do not force activate ``PRESERVE_CONTEXT_ON_EXCEPTION`` in production mode
-as it will cause your application to leak memory on exceptions.  However
-it can be useful during development to get the same error preserving
-behavior as in development mode when attempting to debug an error that
-only occurs under production settings.

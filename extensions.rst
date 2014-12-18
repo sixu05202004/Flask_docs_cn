@@ -37,5 +37,3 @@ Flask 0.8 以前的 Flask
 .. _Flask Extension Registry: http://flask.pocoo.org/extensions/
 
 .. _flaskext_compat.py: https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py
-
-ext_compat.py: https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py

@@ -75,16 +75,4 @@ Flask 中唯一影响伸缩性的因素是环境本地代理。Flask 中的环�
 不管你的代码库是否强大， Flask 开发者总是保持框架的可操作性。如果发现 Flask 有
 什么问题，请立即通过邮件列表或 IRC 与社区进行沟通。对于 Flask 及其扩展的开发都
 来说，提升其在大型应用中的功能的最佳途径是倾听用户的心声。
-e
-processes to achieve concurrency which are all methods well supported by
-the underlying Werkzeug library.
 
-社区谈论.
----------------------------
-
-The Flask developers keep the framework accessible to users with codebases big
-and small. If you find an obstacle in your way, caused by Flask, don't hesitate
-to contact the developers on the mailinglist or IRC channel.  The best way for
-the Flask and Flask extension developers to improve the tools for larger
-applications is getting feedback from users.
-dback from users.

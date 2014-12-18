@@ -58,12 +58,6 @@ Jinja 最为强大的地方在于他的模板继承功能，模板继承允许�
         Welcome on my awesome homepage.
     {% endblock %}
 
-The ``{% extends %}`` tag is the key here. It tells the template engine that
-this template "extends" another template.  When the template system evaluates
-this template, first it locates the parent.  The extends tag must be the
-first tag in the template.  To render the contents of a block defined in
-the parent template, use ``{{ super() }}``.
-
 ``{% extends %}`` 标签是这里的关键，它通知模板引擎这个模板继承了另外的模板，当
 模板系统解析模板时，他首先找到父模板。 ``extends`` 标签必须是模板中的第一个标签。
 为了在一个中块显示父模板中定义的对应块的内容，使用 ``{{ super() }}`` 。

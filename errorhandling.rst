@@ -235,6 +235,3 @@ SQLAlchemy 在自己核心代码中大量使用了日志。尽管在 :mod:`loggi
        app.run(use_debugger=use_debugger, debug=app.debug,
                use_reloader=use_debugger, host='0.0.0.0')
 
-
-e_debugger=use_debugger, debug=app.debug,
-               use_reloader=use_debugger, host='0.0.0.0')

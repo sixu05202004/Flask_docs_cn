@@ -96,8 +96,10 @@ URLs。
     from werkzeug.local import LocalProxy
     db = LocalProxy(get_db)
 
-这种方式下用户可以直接访问 ``db`` ，它内部调用了``get_db()`` 。
-sk import g
+这种方式下用户可以直接访问 ``db`` ，它内部调用了``get_db()``::
+
+    import sqlite3
+    from flask import g
 
     def get_db():
         db = getattr(g, '_database', None)
@@ -111,11 +113,9 @@ sk import g
         if db is not None:
             db.close()
 
-The first time ``get_db()`` is called the connection will be established.
-To make this implicit a :class:`~werkzeug.local.LocalProxy` can be used::
+第一次调用 ``get_db()`` 时，连接将会被建立。建立的过程中隐式地使用了一个 :class:`~werkzeug.local.LocalProxy` 类::
 
     from werkzeug.local import LocalProxy
     db = LocalProxy(get_db)
 
-That way a user can directly access ``db`` which internally calls
-``get_db()``.
+这样，用户就可以通过 ``get_db()`` 来直接访问 ``db`` 了。
