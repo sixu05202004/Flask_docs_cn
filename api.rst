@@ -435,12 +435,12 @@ you are using Flask 0.10 which implies that:
 
    .. versionadded:: 0.8
 
-Stream Helpers
+流辅助函数
 --------------
 
 .. autofunction:: stream_with_context
 
-Useful Internals
+有用的内部函数
 ----------------
 
 .. autoclass:: flask.ctx.RequestContext

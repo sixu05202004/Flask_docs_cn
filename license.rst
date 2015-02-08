@@ -29,7 +29,7 @@ Flask 由一个三条款的 BSD 许可证许可。基本上可以认为：你可
 
 .. _flask-license:
 
-Flask License
+Flask 许可证
 -------------
 
 .. include:: LICENSE
@@ -37,7 +37,7 @@ Flask License
 
 .. _artwork-license:
 
-Flask Artwork License
+Flask 插图许可证
 ---------------------
 
 .. include:: artwork/LICENSE

@@ -148,29 +148,3 @@ Flask 永远不会包含数据库层，也不会有表单库或是这个方向�
 
 Flask 的思想是为所有应用建立一个良好的基础，其余的一切都取决于你和扩展。
 
- of threads and make
-large applications harder to maintain.  However Flask is just not designed
-for large applications or asynchronous servers.  Flask wants to make it
-quick and easy to write a traditional web application.
-
-Also see the :ref:`becomingbig` section of the documentation for some
-inspiration for larger applications based on Flask.
-
-
-What Flask is, What Flask is Not
---------------------------------
-
-Flask will never have a database layer.  It will not have a form library
-or anything else in that direction.  Flask itself just bridges to Werkzeug
-to implement a proper WSGI application and to Jinja2 to handle templating.
-It also binds to a few common standard library packages such as logging.
-Everything else is up for extensions.
-
-Why is this the case?  Because people have different preferences and
-requirements and Flask could not meet those if it would force any of this
-into the core.  The majority of web applications will need a template
-engine in some sort.  However not every application needs a SQL database.
-
-The idea of Flask is to build a good foundation for all applications.
-Everything else is up to you or extensions.
-ou or extensions.

@@ -43,15 +43,3 @@ Python 3，但是6个月以后不知道会发生什么。如果你使用的库�
 
 升级的痛苦大部分是在较低级别的函数库，例如 Flask 和 Werkzeug 等，而不是在实际的高层次的应用程序代码。
 
-ations
----------------
-
-Unless you are already familiar with the differences in the versions we
-recommend sticking to current versions of Python until the ecosystem
-caught up.
-
-The majority of the upgrade pain is in the lower-level libararies like
-Flask and Werkzeug and not in the actual high-level application code.  For
-instance all of the Flask examples that are in the Flask repository work
-out of the box on both 2.x and 3.x and did not require a single line of
-code changed.
