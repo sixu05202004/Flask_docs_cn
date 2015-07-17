@@ -30,7 +30,7 @@
     $ python hello.py
      * Running on http://127.0.0.1:5000/
 
-现在浏览 `http://127.0.0.1:5000/ <http://127.0.0.1:5000/>`_，你会看到你的 hello world 问候。
+现在浏览 `http://127.0.0.1:5000/ <http://127.0.0.1:5000/>`_，你会看到你的 `Hello World` 问候。
 
 那么这段代码做了什么？
 
@@ -101,7 +101,7 @@
 现代 Web 应用程序有优雅的 URLs。这能够帮助人们记住 URLs，这点在面向使用慢网络连接的移动设备的应用上有用。
 如果用户不必通过点击首页而直接访问想要的页面，很可能他们会喜欢这个页面而且下次再次访问。
 
-正如上面所说， meth:`~flask.Flask.route` 装饰器是用于把一个函数绑定到一个 URL 上。这有些基本的例子::
+正如上面所说， :meth:`~flask.Flask.route` 装饰器是用于把一个函数绑定到一个 URL 上。这有些基本的例子::
 
     @app.route('/')
     def index():
@@ -116,8 +116,7 @@
 变量规则
 ``````````````
 
-为了给 URL 增加变量的部分，你需要把一些特定的字段标记成 ``<variable_name>``。这些特定的字段
-将作为参数传入到你的函数中。当然也可以指定一个可选的转换器通过规则 ``<converter:variable_name>``。
+为了给 URL 增加变量的部分，你需要把一些特定的字段标记成 ``<variable_name>``。这些特定的字段将作为参数传入到你的函数中。当然也可以指定一个可选的转换器通过规则 ``<converter:variable_name>``。
 这里有一些不错的例子::
 
     @app.route('/user/<username>')
@@ -141,7 +140,7 @@
 .. admonition:: 唯一 URLs / 重定向行为
 
    Flask 的 URL 规则是基于 Werkzeug 的 routing 模块。
-   该模块背后的想法是基于 Apache 和早期的 HTTP 服务器定下先例确保美丽和唯一的 URL。  
+   该模块背后的想法是基于 Apache 和早期的 HTTP 服务器定下先例确保优雅和唯一的 URL。  
 
    以这两个规则为例::
 
@@ -220,7 +219,7 @@ HTTP (也就说 web 应用协议)有不同的方法来访问 URLs。默认情况
         else:
             show_the_login_form()
 
-如果使用 `GET` 方法，`HEAD` 方法 将会自动添加进来。你不必处理它们。也能确保 `HEAD` 请求
+如果使用 `GET` 方法，`HEAD` 方法将会自动添加进来。你不必处理它们。也能确保 `HEAD` 请求
 会按照 `HTTP RFC`_ (文档在 HTTP 协议里面描述) 要求来处理， 因此你完全可以忽略这部分 HTTP 规范。
 同样地，自从 Flask 0.6 后，`OPTIONS` 也能自动为你处理。
 
@@ -237,7 +236,7 @@ HTTP 方法（通常也称为“谓词”）告诉服务器客户端想要对请
     底层的 Werkzeug 库会为你处理的。
 
 `POST`
-    浏览器通知服务器它要在URL上 *提交* 一些信息，服务器必须保证数据被存储且只存储一次。
+    浏览器通知服务器它要在 URL 上 *提交* 一些信息，服务器必须保证数据被存储且只存储一次。
     这是 HTML 表单通常发送数据到服务器的方法。
 
 `PUT`
@@ -251,8 +250,7 @@ HTTP 方法（通常也称为“谓词”）告诉服务器客户端想要对请
 `OPTIONS`
     给客户端提供一个快速的途径来指出这个 URL 支持哪些 HTTP 方法。从 Flask 0.6 开始，自动实现了它。
 
-现在比较有兴趣的是在 HTML4 和 XHTML1，表单只能以 `GET` 和 `POST` 方法来提交到服务器。在 JavaScript 和以后的 HTML 标准中也能使用其它的方法。同时，HTTP 最近变得十分流行，浏览器不再是唯一使用 HTTP 的客户端。比如，许多
-版本控制系统使用 HTTP。 
+现在比较有兴趣的是在 HTML4 和 XHTML1，表单只能以 `GET` 和 `POST` 方法来提交到服务器。在 JavaScript 和以后的 HTML 标准中也能使用其它的方法。同时，HTTP 最近变得十分流行，浏览器不再是唯一使用 HTTP 的客户端。比如，许多版本控制系统使用 HTTP。 
 
 .. _HTTP RFC: http://www.ietf.org/rfc/rfc2068.txt
 
@@ -276,8 +274,7 @@ HTTP 方法（通常也称为“谓词”）告诉服务器客户端想要对请
 由于这个原因，Flask 自动为你配置好 `Jinja2
 <http://jinja.pocoo.org/2/>`_ 模版。
 
-你可以使用方法 :func:`~flask.render_template` 来渲染模版。所有你需要做的就是提供模版的名称以及
-你想要作为关键字参数传入模板的变量。这里有个渲染模版的简单例子::
+你可以使用方法 :func:`~flask.render_template` 来渲染模版。所有你需要做的就是提供模版的名称以及你想要作为关键字参数传入模板的变量。这里有个渲染模版的简单例子::
 
     from flask import render_template
 
@@ -286,22 +283,22 @@ HTTP 方法（通常也称为“谓词”）告诉服务器客户端想要对请
     def hello(name=None):
         return render_template('hello.html', name=name)
 
-Flask 将会在 `templates` 文件夹中寻找模版。因此如果你的应用是个模块，这个文件 夹在模块的旁边，如果它是一个包，那么这个文件夹在你的包里面:
+Flask 将会在 `templates` 文件夹中寻找模版。因此如果你的应用是个模块，这个文件夹在模块的旁边，如果它是一个包，那么这个文件夹在你的包里面:
 
-**Case 1**: a module::
+**Case 1**: 一个模块::
 
     /application.py
     /templates
         /hello.html
 
-**Case 2**: a package::
+**Case 2**: 一个包::
 
     /application
         /__init__.py
         /templates
             /hello.html
 
-对于模板，你可以使用 Jinja2 模板的全部能力。详细信息查看官方的 `Jinja2 Template Documentation
+对于模板，你可以使用 Jinja2 模板的全部功能。详细信息查看官方的 `Jinja2 Template Documentation
 <http://jinja.pocoo.org/2/documentation/templates>`_ 。
 
 这里是一个模版的例子：
@@ -531,8 +528,7 @@ Cookies
 关于响应
 ---------------
 
-一个视图函数的返回值会被自动转换为一个响应对象。如果返回值是一个字符串，它被转换成
-一个响应主体是该字符串，错误代码为 ``200 OK`` ，媒体类型为 ``text/html`` 的响应对象。
+一个视图函数的返回值会被自动转换为一个响应对象。如果返回值是一个字符串，它被转换成一个响应主体是该字符串，错误代码为 ``200 OK`` ，媒体类型为 ``text/html`` 的响应对象。
 Flask 把返回值转换成响应对象的逻辑如下：
 
 1.  如果返回的是一个合法的响应对象，它会被从视图直接返回。
@@ -603,11 +599,11 @@ Flask 把返回值转换成响应对象的逻辑如下：
     # set the secret key.  keep this really secret:
     app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-这里提到的 :func:`~flask.escape` 可以再你不使用模板引擎的时候做转义（如同本例）。
+这里提到的 :func:`~flask.escape` 可以在你不使用模板引擎的时候做转义（如同本例）。
 
 .. admonition:: 怎样产生一个好的密钥
 
-   随机的问题在于很难判断什么是真随机。一个密钥应该足够随机。你的操作系统 可以基于一个密码随机生成器来生成漂亮的随机值，这个值可以用来做密钥:
+   随机的问题在于很难判断什么是真随机。一个密钥应该足够随机。你的操作系统可以基于一个密码随机生成器来生成漂亮的随机值，这个值可以用来做密钥:
 
    >>> import os
    >>> os.urandom(24)

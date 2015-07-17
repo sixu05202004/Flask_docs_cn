@@ -10,8 +10,8 @@ Flask 依赖两个外部库， `Werkzeug
 因此怎样才能快速地安装这一切了？你有很多种方法去安装，但是最简单粗暴的方式就是 virtualenv，
 让我们首先来看看它。
 
-你首先需要 Python 2.5 或更高的版本，所以请确认有一个最新的 Python 2.x 安装。
-本文撰写的时候，WSGI 的 Python 3 标准尚未确定，所以 Flask 暂不能支持 Python 3.x。
+你首先需要 Python 2.6 或更高的版本，所以请确认有一个最新的 Python 2.x 安装。对于在 Python 3 中使用 Flask，请参看 :ref:`python3`。
+
 
 .. _virtualenv:
 
@@ -23,7 +23,7 @@ virtualenv
 virtualenv 解决了什么问题？如果你像我一样喜欢 Python 的话，有很多机会在基于 Flask 的 web 应用外的其它项目上使用 Python。
 然而项目越多，越有可能在不同版本的 python，或者至少在不同 python 库的版本上工作。
 我们需要面对这样的事实：库破坏向后兼容性的情况相当常见，而且零依赖的正式应用也不大可能存在。
-如此，当你的项目中的两个 或更多出现依赖性冲突，你会怎么做？
+如此，当你的项目中的两个或更多出现依赖性冲突，你会怎么做？
 
 Virtualenv 的出现解决这一切！Virtualenv 能够允许多个不同版本的 Python 安装，每一个服务于各自的项目。
 它实际上并没有安装独立的 Python 副本，只是提供了一种方式使得环境保持独立。让我们见识下 virtualenv 怎么工作的。
@@ -56,7 +56,7 @@ Virtualenv 的出现解决这一切！Virtualenv 能够允许多个不同版本�
 
     $ . venv/bin/activate
 
-如果你是个 Windows 用户，下面的命令行是为你的::
+如果你是个 Windows 用户，下面的命令行是为你准备的::
 
     $ venv\scripts\activate
 
@@ -121,7 +121,7 @@ Windows 下的 `pip` 和 `distribute`
 在 Windows 系统下，安装 `easy_install` 有些棘手，但是仍然很简单。最简单的方式是下载 
 `distribute_setup.py`_ 文件接着运行它。运行这个文件最简单的方式就是打开下载文件夹接着双击这个文件。
 
-接着，把你的 Python 安装中的 Scripts 文件夹添加到 `PATH` 环境变量来，这样 `easy_install` 命令和其它 Python 脚本就加入到了命令行自动搜索的路径。做法是：右键单击桌面上或是“开始”菜单中的“我的电脑”图标，选择“属性”，
+接着，把 Python 的 Scripts 文件夹添加到 `PATH` 环境变量来，这样 `easy_install` 命令和其它 Python 脚本就加入到了命令行自动搜索的路径。做法是：右键单击桌面上或是“开始”菜单中的“我的电脑”图标，选择“属性”，
 然后单击“高级系统设置”（在 Windows XP 中，单击“高级”选项卡），然后单击“环境变量”按钮， 
 最后双击“系统变量”栏中的“Path”变量，并加入你的 Python 解释器的 Scripts 文件夹。
 确保你用分号把它和现有的值分隔开。假设你使用 Python 2.7 且为默认目录，添加下面的值::

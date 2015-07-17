@@ -144,12 +144,4 @@ mimetype ，而把其作为 JavaScript 来求值。因为顶层数组元素是�
 击者可能不只是用 script 标签加载数据并请求一个外部的 URL 。所以， Flask
 所做的只是在使用 :func:`~flask.jsonify` 时允许对象作为顶层元素。确保使用
 普通的 JSON 生成函数时也这么做。
-d (albeit useless) and we hooked in our own constructor, after that
-page loaded the data from the JSON response is in the `captured` array.
 
-Because it is a syntax error in JavaScript to have an object literal
-(``{...}``) toplevel an attacker could not just do a request to an
-external URL with the script tag to load up the data.  So what Flask does
-is to only allow objects as toplevel elements when using
-:func:`~flask.jsonify`.  Make sure to do the same when using an ordinary
-JSON generate function.

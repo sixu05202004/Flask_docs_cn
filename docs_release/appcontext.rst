@@ -28,7 +28,7 @@ Flask 背后的一个设计理念是在代码执行的时候存在两种不同�
 应用上下文存在的主要原因是，在过去，没有更好的方式来在请求上下文中附加一堆函数，
 因为 Flask 设计的支柱之一是你可以在一个 Python 进程中拥有多个应用。
 
-那么代码如何找到“正确的”应用？在过去，我们推荐显式地到处传递应用，但是这 导致没有用这种想法设计的库的问题，因为让库实现这种想法太不方便。
+那么代码如何找到“正确的”应用？在过去，我们推荐显式地到处传递应用，但是这导致没有用这种想法设计的库的问题，因为让库实现这种想法太不方便。
 
 解决上述问题的常用方法是使用后面将会提到的 :data:`~flask.current_app` 代理，它被限制在当前请求的应用引用。
 既然无论如何在没有请求时创建一个这样的请求上下文是一个没有必要的昂贵操作，那么就引入了应用上下文。
@@ -53,10 +53,8 @@ URLs。
 应用上下文的局部变量
 -----------------------
 
-应用上下文会会必要地创建并销毁。它不会在线程间移动，并且也不会在请求间共享。如此，
-它是一个存储数据库连接信息或是别的东西的最佳位置。内部的栈对象称为 :data:`flask._app_ctx_stack`。
-扩展可以自由的在最高水平存储额外的信息，如果它们选用了相当唯一的名称，相反 :data:`flask.g` 对象是
-为用户代码保留。
+应用上下文会按需创建并销毁。它不会在线程间移动，并且也不会在请求间共享。如此，它是一个存储数据库连接信息或是别的东西的最佳位置。内部的栈对象称为 :data:`flask._app_ctx_stack`。
+扩展可以在栈的最顶端自由储存信息，前提是使用唯一的名称，相反 :data:`flask.g` 对象是为用户代码保留。
 
 关于此更多的信息，请看 :ref:`extension-dev`。
 
@@ -75,28 +73,6 @@ URLs。
 ``teardown_X()`` 函数注册作为销毁处理器。
 
 这是个连接数据库的例子::
-
-    import sqlite3
-    from flask import g
-
-    def get_db():
-        db = getattr(g, '_database', None)
-        if db is None:
-            db = g._database = connect_to_database()
-        return db
-
-    @app.teardown_appcontext
-    def teardown_db(exception):
-        db = getattr(g, '_database', None)
-        if db is not None:
-            db.close()
-
-首先 ``get_db()`` 被调用，连接将会建立。为了使得隐式地进行，:class:`~werkzeug.local.LocalProxy` 能够被使用::
-
-    from werkzeug.local import LocalProxy
-    db = LocalProxy(get_db)
-
-这种方式下用户可以直接访问 ``db`` ，它内部调用了``get_db()``::
 
     import sqlite3
     from flask import g
