@@ -10,7 +10,7 @@ Flask 依赖两个外部库， `Werkzeug
 因此怎样才能快速地安装这一切了？你有很多种方法去安装，但是最简单粗暴的方式就是 virtualenv，
 让我们首先来看看它。
 
-你首先需要 Python 2.6 或更高的版本，所以请确认有一个最新的 Python 2.x 安装。对于在 Python 3 中使用 Flask，请参看 :ref:`python3`。
+你首先需要 Python 2.6 或更高的版本，所以请确认有一个最新的 Python 2.x 安装。对于在 Python 3 中使用 Flask，请参看 :ref:`python3-support`。
 
 
 .. _virtualenv:
@@ -18,11 +18,9 @@ Flask 依赖两个外部库， `Werkzeug
 virtualenv
 ----------
 
-也许 Virtualenv 是你在开发中最愿意使用的，如果你在生产机器上有 shell 权限的时候，你也会愿意用上 virtualenv。
+也许 virtualenv 是你在开发中最愿意使用的，如果你在生产机器上有 shell 权限的时候，你也会愿意用上 virtualenv。
 
-virtualenv 解决了什么问题？如果你像我一样喜欢 Python 的话，有很多机会在基于 Flask 的 web 应用外的其它项目上使用 Python。
-然而项目越多，越有可能在不同版本的 python，或者至少在不同 python 库的版本上工作。
-我们需要面对这样的事实：库破坏向后兼容性的情况相当常见，而且零依赖的正式应用也不大可能存在。
+Virtualenv 解决了什么问题？如果你像我一样喜欢 Python 的话，有很多机会在基于 Flask 的 web 应用外的其它项目上使用 Python。然而项目越多，越有可能在不同版本的 Python，或者至少在不同 Python 库的版本上工作。我们需要面对这样的事实：库破坏向后兼容性的情况相当常见，而且零依赖的正式应用也不大可能存在。
 如此，当你的项目中的两个或更多出现依赖性冲突，你会怎么做？
 
 Virtualenv 的出现解决这一切！Virtualenv 能够允许多个不同版本的 Python 安装，每一个服务于各自的项目。

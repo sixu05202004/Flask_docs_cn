@@ -21,6 +21,8 @@
    reqcontext
    blueprints
    extensions
+   cli
+   server
    shell
    patterns/index
    deploying/index
