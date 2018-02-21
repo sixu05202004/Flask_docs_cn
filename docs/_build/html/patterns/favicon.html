@@ -1,0 +1,153 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>添加一个页面图标 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="数据流" href="streaming.html" />
+    <link rel="prev" title="在 Flask 中使用 MongoKit" href="mongokit.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>添加一个页面图标<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>一个“页面图标”是浏览器在标签或书签中使用的图标，它可以给你的网站加上一个唯一
+的标示，方便区别于其他网站。</p>
+<p>那么如何给一个 Flask 应用添加一个页面图标呢？首先，显而易见的，需要一个图标。
+图标应当是 16 X 16 像素的 ICO 格式文件。这不是规定的，但却是一个所有浏览器都
+支持的事实上的标准。把 ICO 文件命名为 <code class="file docutils literal"><span class="pre">favicon.ico</span></code> 并放入静态 文件目录
+中。</p>
+<p>现在我们要让浏览器能够找到你的图标，正确的做法是在你的 HTML 中添加一个链接。
+示例：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;shortcut icon&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">url_for</span><span class="o">(</span><span class="s1">&#39;static&#39;</span><span class="o">,</span> <span class="nv">filename</span><span class="o">=</span><span class="s1">&#39;favicon.ico&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>对于大多数浏览器来说，这样就完成任务了，但是一些老古董不支持这个标准。老的标准
+是把名为“ favicon.ico ”的图标放在服务器的根目录下。如果你的应用不是挂接在域的
+根目录下，那么你需要定义网页服务器在根目录下提供这个图标，否则就无计可施了。
+如果你的应用位于根目录下，那么你可以简单地进行重定向:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s1">&#39;/favicon.ico&#39;</span><span class="p">,</span>
+                 <span class="n">redirect_to</span><span class="o">=</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;static&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;favicon.ico&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>如果想要保存额外的重定向请求，那么还可以使用
+<a class="reference internal" href="../api.html#flask.send_from_directory" title="flask.send_from_directory"><code class="xref py py-func docutils literal"><span class="pre">send_from_directory()</span></code></a> 函数来写一个视图:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">send_from_directory</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/favicon.ico&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">favicon</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">),</span>
+                               <span class="s1">&#39;favicon.ico&#39;</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/vnd.microsoft.icon&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>上例中的 MIME 类型可以省略，浏览器会自动猜测类型。但是我们在例子中明确定义了，
+省去了额外的猜测，反正这个类型是不变的。</p>
+<p>上例会通过你的应用来提供图标，如果可能的话，最好配置你的专用服务器来提供图标，
+配置方法参见网页服务器的文档。</p>
+<div class="section" id="id2">
+<h2>另见<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Wikipedia 上的 <a class="reference external" href="http://en.wikipedia.org/wiki/Favicon">页面图标</a> 词条</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">添加一个页面图标</a><ul>
+<li><a class="reference internal" href="#id2">另见</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="mongokit.html" title="previous chapter">在 Flask 中使用 MongoKit</a></li>
+      <li>Next: <a href="streaming.html" title="next chapter">数据流</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/favicon.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/favicon.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flask 扩展 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="在 Shell 中使用 Flask" href="shell.html" />
+    <link rel="prev" title="用蓝图实现模块化应用" href="blueprints.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="flask">
+<h1>Flask 扩展<a class="headerlink" href="#flask" title="Permalink to this headline">¶</a></h1>
+<p>Flask 扩展多方面地扩充了 Flask 功能。例如它们添加了数据库支持以及其它常见任务。</p>
+<div class="section" id="id1">
+<h2>查找扩展<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Flask 扩展被列出在 <a class="reference external" href="http://flask.pocoo.org/extensions/">Flask Extension Registry</a>  上并且能够用 <code class="docutils literal"><span class="pre">easy_install</span></code> 或者 <code class="docutils literal"><span class="pre">pip</span></code> 下载。
+如果你把一个 Flask 扩展作为依赖添加到你的 <code class="docutils literal"><span class="pre">requirements.rst</span></code> 或者 <code class="docutils literal"><span class="pre">setup.py</span></code> 文件，它们通常用一个简单的
+命令安装或者在应用安装时被安装。</p>
+</div>
+<div class="section" id="id2">
+<h2>使用扩展<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>扩展通常是有展示如何使用它的文档。扩展如何支持行为上不存在一般的规则，但是它们是从常见的位置导入的。
+如果你有一个称为 <code class="docutils literal"><span class="pre">Flask-Foo</span></code> 或者 <code class="docutils literal"><span class="pre">Foo-Flask</span></code> 的扩展，这将是永远导入从 <code class="docutils literal"><span class="pre">flask.ext.foo</span></code> 中:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask.ext</span> <span class="k">import</span> <span class="n">foo</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="flask-0-8-flask">
+<h2>Flask 0.8 以前的 Flask<a class="headerlink" href="#flask-0-8-flask" title="Permalink to this headline">¶</a></h2>
+<p>如果你正在使用 Flask 0.7 或者更早的版本，<code class="xref py py-data docutils literal"><span class="pre">flask.ext</span></code> 是不存在的，相反你必须从 <code class="docutils literal"><span class="pre">flaskext.foo</span></code> 或者 <code class="docutils literal"><span class="pre">flask_foo</span></code>
+上导入，这取决于扩展的如何分发的。如果你想要开发一个支持 Flask 0.7 或者更早的版本的应用，你应该仍然从 <code class="xref py py-data docutils literal"><span class="pre">flask.ext</span></code> 包中导入
+扩展。我们提供一个兼容模版来在 Flask 的老版本中提供这个包。你可以从 github: <a class="reference external" href="https://github.com/mitsuhiko/flask/raw/master/scripts/flaskext_compat.py">flaskext_compat.py</a> 上下载它。</p>
+<p>这里是使用它的方式:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">flaskext_compat</span>
+<span class="n">flaskext_compat</span><span class="o">.</span><span class="n">activate</span><span class="p">()</span>
+
+<span class="kn">from</span> <span class="nn">flask.ext</span> <span class="k">import</span> <span class="n">foo</span>
+</pre></div>
+</div>
+<p>一旦激活了 <code class="docutils literal"><span class="pre">flaskext_compat</span></code> 模块，就会存在 <code class="xref py py-data docutils literal"><span class="pre">flask.ext</span></code> ，并且你可以从那里开始导入。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Flask 扩展</a><ul>
+<li><a class="reference internal" href="#id1">查找扩展</a></li>
+<li><a class="reference internal" href="#id2">使用扩展</a></li>
+<li><a class="reference internal" href="#flask-0-8-flask">Flask 0.8 以前的 Flask</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="blueprints.html" title="previous chapter">用蓝图实现模块化应用</a></li>
+      <li>Next: <a href="shell.html" title="next chapter">在 Shell 中使用 Flask</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/extensions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/extensions.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

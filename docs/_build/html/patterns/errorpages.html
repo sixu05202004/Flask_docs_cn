@@ -1,0 +1,168 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>自定义出错页面 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="惰性载入视图" href="lazyloading.html" />
+    <link rel="prev" title="用 jQuery 实现 Ajax" href="jquery.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>自定义出错页面<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>Flask 有一个方便的 <a class="reference internal" href="../api.html#flask.abort" title="flask.abort"><code class="xref py py-func docutils literal"><span class="pre">abort()</span></code></a> 函数，它可以通过一个 HTTP 出错代码退出
+一个请求。它还提供一个包含基本说明的出错页面，页面显示黑白的文本，很朴素。</p>
+<p>用户可以根据错误代码或多或少知道发生了什么错误。</p>
+<div class="section" id="id2">
+<h2>常见出错代码<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>以下出错代码是用户常见的，即使应用正常也会出现这些出错代码：</p>
+<dl class="docutils">
+<dt><em>404 Not Found</em></dt>
+<dd>这是一个古老的“朋友，你使用了一个错误的 URL ”信息。这个信息出现得如此
+频繁，以至于连刚上网的新手都知道 404 代表：该死的，我要看的东西不见了。
+一个好的做法是确保 404 页面上有一些真正有用的东西，至少要有一个返回首页
+的链接。</dd>
+<dt><em>403 Forbidden</em></dt>
+<dd>如果你的网站上有某种权限控制，那么当用户访问未获授权内容时应当发送 403
+代码。因此请确保当用户尝试访问未获授权内容时得到正确的反馈。</dd>
+<dt><em>410 Gone</em></dt>
+<dd>你知道 “404 Not Found” 有一个名叫 “410 Gone” 的兄弟吗？很少有人使用这个
+代码。如果资源以前曾经存在过，但是现在已经被删除了，那么就应该使用 410
+代码，而不是 404 。如果你不是在数据库中把文档永久地删除，而只是给文档打
+了一个删除标记，那么请为用户考虑，应当使用 410 代码，并显示信息告知用户
+要找的东西已经删除。</dd>
+<dt><em>500 Internal Server Error</em></dt>
+<dd>这个代码通常表示程序出错或服务器过载。强烈建议把这个页面弄得友好一点，
+因为你的应用 <em>迟早</em> 会出现故障的（参见 <a class="reference internal" href="../errorhandling.html#application-errors"><span class="std std-ref">记录应用程序错误</span></a> ）。</dd>
+</dl>
+</div>
+<div class="section" id="id3">
+<h2>出错处理器<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>一个出错处理器是一个函数，就像一个视图函数一样。与视图函数不同之处在于出错处理器
+在出现错误时被调用，且传递错误。错误大多数是一个
+<a class="reference external" href="http://werkzeug.pocoo.org/docs/exceptions/#werkzeug.exceptions.HTTPException" title="(in Werkzeug v0.14-dev)"><code class="xref py py-exc docutils literal"><span class="pre">HTTPException</span></code></a> ，但是有一个例外：当出现内部服务器错误
+时会把异常实例传递给出错处理器。</p>
+<p>出错处理器使用 <a class="reference internal" href="../api.html#flask.Flask.errorhandler" title="flask.Flask.errorhandler"><code class="xref py py-meth docutils literal"><span class="pre">errorhandler()</span></code></a> 装饰器注册，注册时应提供异常的
+出代码。请记住， Flask <em>不会</em> 为你设置出错代码，因此请确保在返回响应时，同时提供
+HTTP 状态代码。</p>
+<p>以下是一个处理 “404 Page Not Found” 异常的示例:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">render_template</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">page_not_found</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;404.html&#39;</span><span class="p">),</span> <span class="mi">404</span>
+</pre></div>
+</div>
+<p>示例模板：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">extends</span> <span class="s2">&quot;layout.html&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">title</span> <span class="cp">%}</span>Page Not Found<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Page Not Found<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>What you were looking for is just not there.
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">url_for</span><span class="o">(</span><span class="s1">&#39;index&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span>go somewhere nice<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">自定义出错页面</a><ul>
+<li><a class="reference internal" href="#id2">常见出错代码</a></li>
+<li><a class="reference internal" href="#id3">出错处理器</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="jquery.html" title="previous chapter">用 jQuery 实现 Ajax</a></li>
+      <li>Next: <a href="lazyloading.html" title="next chapter">惰性载入视图</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/errorpages.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/errorpages.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

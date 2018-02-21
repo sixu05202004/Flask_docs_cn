@@ -1,0 +1,218 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>独立 WSGI 容器 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="uWSGI" href="uwsgi.html" />
+    <link rel="prev" title="mod_wsgi (Apache)" href="mod_wsgi.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="wsgi">
+<span id="deploying-wsgi-standalone"></span><h1>独立 WSGI 容器<a class="headerlink" href="#wsgi" title="Permalink to this headline">¶</a></h1>
+<p>有用 Python 编写的流行服务器来容纳 WSGI 应用并提供 HTTP 服务。这些服务器在运行
+时是独立的：你可以从你的 web 服务器设置到它的代理。如果你遇见问题，请注意
+<a class="reference internal" href="#deploying-proxy-setups"><span class="std std-ref">代理设置</span></a> 一节的内容。</p>
+<div class="section" id="gunicorn">
+<h2>Gunicorn<a class="headerlink" href="#gunicorn" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://gunicorn.org/">Gunicorn</a>  是一个给 UNIX 用的 WSGI HTTP 服务器。这是一个从
+Ruby 的 Unicorn 项目移植的 pre-fork worker 模式。它既支持 <a class="reference external" href="http://eventlet.net/">eventlet</a> ，也
+支持 <a class="reference external" href="http://codespeak.net/py/0.9.2/greenlet.html">greenlet</a> 。在这个服务器上运行 Flask 应用是相当简单的:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gunicorn</span> <span class="n">myproject</span><span class="p">:</span><span class="n">app</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="http://gunicorn.org/">Gunicorn</a> 提供了许多命令行选项 —— 见 <code class="docutils literal"><span class="pre">gunicorn</span> <span class="pre">-h</span></code> 。
+例如，用四个 worker 进程（ <code class="docutils literal"><span class="pre">gunicorn</span> <span class="pre">-h</span></code> ）来运行一个 Flask 应用，绑定
+到 localhost 的4000 端口（ <code class="docutils literal"><span class="pre">-b</span> <span class="pre">127.0.0.1:4000</span></code> ）:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gunicorn</span> <span class="o">-</span><span class="n">w</span> <span class="mi">4</span> <span class="o">-</span><span class="n">b</span> <span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">:</span><span class="mi">4000</span> <span class="n">myproject</span><span class="p">:</span><span class="n">app</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tornado">
+<h2>Tornado<a class="headerlink" href="#tornado" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.tornadoweb.org/">Tornado</a> 是一个开源的可伸缩的、非阻塞式的 web 服务器和工具集，它驱动了
+<a class="reference external" href="http://friendfeed.com/">FriendFeed</a> 。因为它使用了 epoll 模型且是非阻塞的，它可以处理数以千计
+的并发固定连接，这意味着它对实时 web 服务是理想的。把 Flask 集成这个服务
+是直截了当的:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">tornado.wsgi</span> <span class="k">import</span> <span class="n">WSGIContainer</span>
+<span class="kn">from</span> <span class="nn">tornado.httpserver</span> <span class="k">import</span> <span class="n">HTTPServer</span>
+<span class="kn">from</span> <span class="nn">tornado.ioloop</span> <span class="k">import</span> <span class="n">IOLoop</span>
+<span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+
+<span class="n">http_server</span> <span class="o">=</span> <span class="n">HTTPServer</span><span class="p">(</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">app</span><span class="p">))</span>
+<span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+<span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gevent">
+<h2>Gevent<a class="headerlink" href="#gevent" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.gevent.org/">Gevent</a> 是一个基于协同程序的 Python 网络库，使用 <a class="reference external" href="http://codespeak.net/py/0.9.2/greenlet.html">greenlet</a> 来在
+<a class="reference external" href="http://monkey.org/~provos/libevent/">libevent</a> 的事件循环上提供高层的同步 API</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">gevent.wsgi</span> <span class="k">import</span> <span class="n">WSGIServer</span>
+<span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+
+<span class="n">http_server</span> <span class="o">=</span> <span class="n">WSGIServer</span><span class="p">((</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span> <span class="n">app</span><span class="p">)</span>
+<span class="n">http_server</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploying-proxy-setups">
+<span id="id5"></span><h2>代理设置<a class="headerlink" href="#deploying-proxy-setups" title="Permalink to this headline">¶</a></h2>
+<p>如果你在一个 HTTP 代理后把你的应用部署到这些服务器中的之一，你需要重写一些标头
+来让应用正常工作。在 WSGI 环境中两个有问题的值通常是 <cite>REMOTE_ADDR</cite> 和
+<cite>HTTP_HOST</cite> 。你可以配置你的 httpd 来传递这些标头，或者在中间件中手动修正。
+Werkzeug 带有一个修正工具来解决常见的配置，但是你可能想要为特定的安装自己写
+WSGI 中间件。</p>
+<p>这是一个简单的 nginx 配置，它监听 localhost 的 8000 端口，并提供到一个应用的
+代理，设置了合适的标头:</p>
+<div class="highlight-nginx"><div class="highlight"><pre><span></span><span class="k">server</span> <span class="p">{</span>
+    <span class="kn">listen</span> <span class="mi">80</span><span class="p">;</span>
+
+    <span class="kn">server_name</span> <span class="s">_</span><span class="p">;</span>
+
+    <span class="kn">access_log</span>  <span class="s">/var/log/nginx/access.log</span><span class="p">;</span>
+    <span class="kn">error_log</span>  <span class="s">/var/log/nginx/error.log</span><span class="p">;</span>
+
+    <span class="kn">location</span> <span class="s">/</span> <span class="p">{</span>
+        <span class="kn">proxy_pass</span>         <span class="s">http://127.0.0.1:8000/</span><span class="p">;</span>
+        <span class="kn">proxy_redirect</span>     <span class="no">off</span><span class="p">;</span>
+
+        <span class="kn">proxy_set_header</span>   <span class="s">Host</span>             <span class="nv">$host</span><span class="p">;</span>
+        <span class="kn">proxy_set_header</span>   <span class="s">X-Real-IP</span>        <span class="nv">$remote_addr</span><span class="p">;</span>
+        <span class="kn">proxy_set_header</span>   <span class="s">X-Forwarded-For</span>  <span class="nv">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>如果你的 httpd 不提供这些标头，最常见的配置引用从 <cite>X-Forwarded-Host</cite> 设置的主机
+名和从 <cite>X-Forwarded-For</cite> 设置的远程地址:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">werkzeug.contrib.fixers</span> <span class="k">import</span> <span class="n">ProxyFix</span>
+<span class="n">app</span><span class="o">.</span><span class="n">wsgi_app</span> <span class="o">=</span> <span class="n">ProxyFix</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">wsgi_app</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition- admonition">
+<p class="first admonition-title">信任标头</p>
+<p class="last">请记住在一个非代理配置中使用这样一个中间件会是一个安全问题，因为它盲目地信任
+一个可能由恶意客户端伪造的标头。</p>
+</div>
+<p>如果你想从另一个标头重写标头，你可能会使用这样的一个修正程序:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CustomProxyFix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">):</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;HTTP_X_FHOST&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">host</span><span class="p">:</span>
+            <span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HTTP_HOST&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">host</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">)</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">wsgi_app</span> <span class="o">=</span> <span class="n">CustomProxyFix</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">wsgi_app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">独立 WSGI 容器</a><ul>
+<li><a class="reference internal" href="#gunicorn">Gunicorn</a></li>
+<li><a class="reference internal" href="#tornado">Tornado</a></li>
+<li><a class="reference internal" href="#gevent">Gevent</a></li>
+<li><a class="reference internal" href="#deploying-proxy-setups">代理设置</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">部署方式</a><ul>
+      <li>Previous: <a href="mod_wsgi.html" title="previous chapter">mod_wsgi (Apache)</a></li>
+      <li>Next: <a href="uwsgi.html" title="next chapter">uWSGI</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/deploying/wsgi-standalone.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/deploying/wsgi-standalone.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

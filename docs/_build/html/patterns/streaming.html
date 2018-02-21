@@ -1,0 +1,166 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>数据流 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="延迟请求回调" href="deferredcallbacks.html" />
+    <link rel="prev" title="添加一个页面图标" href="favicon.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>数据流<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>有时，您希望发送非常巨量的数据到客户端，远远超过您可以保存在内存中的量。
+在您实时地产生这些数据时，如何才能直接把他发送给客户端，而不需要在文件
+系统中中转呢?</p>
+<p>答案是生成器和 Direct Response。</p>
+<div class="section" id="id2">
+<h2>基本使用<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>下面是一个简单的视图函数，这一视图函数实时生成大量的 CSV 数据，
+这一技巧使用了一个内部函数，这一函数使用生成器来生成数据，并且
+稍后激发这个生成器函数时，把返回值传递给一个 response 对象:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Response</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/large.csv&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">generate_large_csv</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">iter_all_rows</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">generate</span><span class="p">(),</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;text/csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>每一个 <code class="docutils literal"><span class="pre">yield</span></code> 表达式直接被发送给浏览器。现在，仍然有一些 WSGI 中间件可能
+打断数据流，所以在这里请注意那些在带缓存快照的调试环境，以及其他一些您可能
+激活了的东西。</p>
+</div>
+<div class="section" id="id3">
+<h2>在模板中生成流<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>Jinja2 模板引擎同样支持分块逐个渲染模板。Flask 没有直接暴露这一功能到
+模板中，因为它很少被用到，但是您可以很轻易的自己实现:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Response</span>
+
+<span class="k">def</span> <span class="nf">stream_template</span><span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">):</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">update_template_context</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">jinja_env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
+    <span class="n">rv</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="n">rv</span><span class="o">.</span><span class="n">enable_buffering</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rv</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/my-large-page.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">render_large_template</span><span class="p">():</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">iter_all_rows</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">stream_template</span><span class="p">(</span><span class="s1">&#39;the_template.html&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>这一技巧是从应用程序上的 Jinja2 的环境中得到那个模板对象，然后调用
+<a class="reference external" href="http://jinja.pocoo.org/docs/api/#jinja2.Template.stream" title="(in Jinja2 v2.11)"><code class="xref py py-meth docutils literal"><span class="pre">stream()</span></code></a> 函数而不是 <a class="reference external" href="http://jinja.pocoo.org/docs/api/#jinja2.Template.render" title="(in Jinja2 v2.11)"><code class="xref py py-meth docutils literal"><span class="pre">render()</span></code></a>
+函数。前者返回的是一个流对象，而不是后者的字符串。因为我们绕过了 Flask
+的模板渲染函数，而是直接使用了模板对象，所以我们手动必须调用
+<a class="reference internal" href="../api.html#flask.Flask.update_template_context" title="flask.Flask.update_template_context"><code class="xref py py-meth docutils literal"><span class="pre">update_template_context()</span></code></a> 函数来确保更新了模板的渲染上下文。
+这一模板随后以流的方式迭代直到结束。因为每一次您使用使用一个 yield 。服务器
+都会将所有的已经产生的内容塞给给客户端，因可能希望在模板中缓冲一部分元素
+之后再发送，而不是每次都直接发送。您可以使用 <code class="docutils literal"><span class="pre">rv.enable_buffering(size)</span></code>
+来实现，size 的较为合理的默认值是 <code class="docutils literal"><span class="pre">5</span></code> 。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">数据流</a><ul>
+<li><a class="reference internal" href="#id2">基本使用</a></li>
+<li><a class="reference internal" href="#id3">在模板中生成流</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="favicon.html" title="previous chapter">添加一个页面图标</a></li>
+      <li>Next: <a href="deferredcallbacks.html" title="next chapter">延迟请求回调</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/streaming.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/streaming.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

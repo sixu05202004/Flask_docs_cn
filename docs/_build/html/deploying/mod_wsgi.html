@@ -1,0 +1,237 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mod_wsgi (Apache) &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="独立 WSGI 容器" href="wsgi-standalone.html" />
+    <link rel="prev" title="部署方式" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mod-wsgi-apache">
+<span id="mod-wsgi-deployment"></span><h1>mod_wsgi (Apache)<a class="headerlink" href="#mod-wsgi-apache" title="Permalink to this headline">¶</a></h1>
+<p>如果你使用 <a class="reference external" href="http://httpd.apache.org/">Apache</a> web 服务器，请考虑使用 <a class="reference external" href="http://code.google.com/p/modwsgi/">mod_wsgi</a> 。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">注意</p>
+<p class="last">请确保在任何 <code class="docutils literal"><span class="pre">app.run()</span></code> 调用之前，你应该把应用文件放在一个 <code class="docutils literal"><span class="pre">if</span>
+<span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">`__main__`:</span></code> 块中或移动到独立的文件。只确保它没被调用是
+因为这总是会启动一个本地的 WSGI 服务器，而当我们使用 mod_wsgi 部署应用
+时并不想让它出现。</p>
+</div>
+<div class="section" id="mod-wsgi">
+<h2>安装 <cite>mod_wsgi</cite><a class="headerlink" href="#mod-wsgi" title="Permalink to this headline">¶</a></h2>
+<p>如果你还没有安装过 <cite>mod_wsgi</cite> ，你需要使用包管理器来安装或手动编译它。
+mod_wsgi 的 <a class="reference external" href="http://code.google.com/p/modwsgi/wiki/QuickInstallationGuide">安装指引</a> 涵盖了 UNIX 系统中的源码安装。</p>
+<p>如果你使用 Ubuntu/Debian 你可以按照下面的命令使用 apt-get 获取并激活它:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span># apt-get install libapache2-mod-wsgi
+</pre></div>
+</div>
+<p>在 FreeBSD 上，通过编译 <cite>www/mode_wsgi</cite> port 或使用 pkg_add 来安装:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span># pkg_add -r mod_wsgi
+</pre></div>
+</div>
+<p>如果你在使用 pkgsrc 你可以编译 <cite>www/ap2-wsgi</cite> 包来安装 <cite>mod_wsgi</cite> 。</p>
+<p>如果你在 apache 第一次重加载后遇到子进程段错误，你可以安全地忽略它们。
+只需要重启服务器。</p>
+</div>
+<div class="section" id="wsgi">
+<h2>创建一个 <cite>.wsgi</cite> 文件<a class="headerlink" href="#wsgi" title="Permalink to this headline">¶</a></h2>
+<p>你需要一个 <cite>yourapplication.wsgi</cite> 文件来运行你的应用。这个文件包含 <cite>mod_wsgi</cite>
+启动时执行的获取应用对象的代码。这个对象在该文件中名为 <cite>application</cite> ，并在
+之后作为应用。</p>
+<p>对于大多数应用，下面度文件就可以胜任:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span> <span class="k">as</span> <span class="n">application</span>
+</pre></div>
+</div>
+<p>如果你没有一个用于创建应用的工厂函数而是单例的应用，你可以直接导入它为
+<cite>application</cite> 。</p>
+<p>把这个文件放在你可以找到的地方（比如 <cite>/var/www/yourapplication</cite> ）并确保
+<cite>yourapplication</cite> 和所有使用的库在 python 载入的路径。如果你不想在系统全局
+安装它，请考虑使用 <a class="reference external" href="http://pypi.python.org/pypi/virtualenv">virtual python</a> 实例。记住你也会需要在 virtualenv
+中安装应用。可选地，你可以在 <cite>.wsgi</cite> 文件中在导入前修补路径:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;/path/to/the/application&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>配置 Apache<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>你需要做的最后一件事情就是为你的应用创建一个 Apache 配置文件。在本例中，考虑
+安全因素，我们让 <cite>mod_wsgi</cite> 来在不同度用户下执行应用:</p>
+<div class="highlight-apache"><div class="highlight"><pre><span></span><span class="nt">&lt;VirtualHost</span> <span class="s">*</span><span class="nt">&gt;</span>
+    <span class="nb">ServerName</span> example.com
+
+    <span class="nb">WSGIDaemonProcess</span> yourapplication <span class="k">user</span>=user1 <span class="k">group</span>=group1 threads=5
+    <span class="nb">WSGIScriptAlias</span> / <span class="sx">/var/www/yourapplication/yourapplication.wsgi</span>
+
+    <span class="nt">&lt;Directory</span> <span class="s">/var/www/yourapplication</span><span class="nt">&gt;</span>
+        <span class="nb">WSGIProcessGroup</span> yourapplication
+        <span class="nb">WSGIApplicationGroup</span> %{GLOBAL}
+        <span class="nb">Order</span> deny,allow
+        <span class="nb">Allow</span> from <span class="k">all</span>
+    <span class="nt">&lt;/Directory&gt;</span>
+<span class="nt">&lt;/VirtualHost&gt;</span>
+</pre></div>
+</div>
+<p>更多信息请翻阅 <a class="reference external" href="http://code.google.com/p/modwsgi/wiki/">mod_wsgi wiki</a> 。</p>
+</div>
+<div class="section" id="id4">
+<h2>故障排除<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>如果你的应用不能运行，按照下面的指导来排除故障:</p>
+<dl class="docutils">
+<dt><strong>问题:</strong> 应用不能运行，错误日志显示, SystemExit 忽略</dt>
+<dd>你的应用文件中有一个不在 <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code> 声明保护下的
+<code class="docutils literal"><span class="pre">app.run()</span></code> 调用。把 <a class="reference internal" href="../api.html#flask.Flask.run" title="flask.Flask.run"><code class="xref py py-meth docutils literal"><span class="pre">run()</span></code></a> 从文件中移除，或者把
+它移到一个独立的 <cite>run.py</cite> 文件，再或者把它放到这样一个 if 块中。</dd>
+<dt><strong>问题:</strong> 应用报出权限错误</dt>
+<dd>可能是因为使用了错误的用户运行应用。确保需要访问的应用有合适的权限设置，
+并且使用正确的用户来运行（ <cite>WSGIDaemonProcess</cite> 指令的 <code class="docutils literal"><span class="pre">user</span></code> 和
+<code class="docutils literal"><span class="pre">group</span></code> 参数）</dd>
+<dt><strong>问题:</strong> 应用崩溃时打印一条错误</dt>
+<dd><p class="first">记住 mod_wsgi 禁止对 <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stdout" title="(in Python v3.6)"><code class="xref py py-data docutils literal"><span class="pre">sys.stdout</span></code></a> 和 <a class="reference external" href="https://docs.python.org/3/library/sys.html#sys.stderr" title="(in Python v3.6)"><code class="xref py py-data docutils literal"><span class="pre">sys.stderr</span></code></a> 做操作。
+你可以通过设定配置中的 <cite>WSGIRestrictStdout</cite> 为 <code class="docutils literal"><span class="pre">off</span></code> 来禁用这个保护。</p>
+<div class="highlight-apache"><div class="highlight"><pre><span></span><span class="nb">WSGIRestrictStdout</span> <span class="k">Off</span>
+</pre></div>
+</div>
+<p>或者，你可以在 .wsgi 文件中用不同的流来替换标准输出:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>问题:</strong> 访问资源时报出 IO 错误</dt>
+<dd><p class="first">你的应用可能是一个你符号链接到 site-packages 文件夹的单个 .py 文件。
+请注意这不会正常工作，除非把这个文件放进 pythonpath 包含的文件夹中，
+或是把应用转换成一个包。</p>
+<p class="last">这个问题同样适用于非安装的包，模块文件名用于定位资源，而符号链接会获取
+错误的文件名。</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="id5">
+<h2>自动重加载支持<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>你可以激活自动重载入支持来协助部署工具。无论何时，当 <cite>.wsgi</cite> 文件，
+<cite>mod_wsgi</cite> 会为我们自动重新加载所有的守护进程。</p>
+<p>为此，只需要直接在你的 <cite>Directory</cite> 节中添加如下内容:</p>
+<div class="highlight-apache"><div class="highlight"><pre><span></span><span class="nb">WSGIScriptReloading</span> <span class="k">On</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h2>使用虚拟环境<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>虚拟环境的优势是它们永远不在系统全局安装所需的依赖关系，这样你可以更好
+地控制使用什么。如果你想要同 mod_wsgi 使用虚拟环境，你需要稍微修改一下
+<cite>.wsgi</cite> 文件。</p>
+<p>把下面的几行添加到你 <cite>.wsgi</cite> 文件的顶部:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">activate_this</span> <span class="o">=</span> <span class="s1">&#39;/path/to/env/bin/activate_this.py&#39;</span>
+<span class="n">execfile</span><span class="p">(</span><span class="n">activate_this</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="vm">__file__</span><span class="o">=</span><span class="n">activate_this</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>这根据虚拟环境的设置设定了加载路径。记住这个路径一经是绝对的。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mod_wsgi (Apache)</a><ul>
+<li><a class="reference internal" href="#mod-wsgi">安装 <cite>mod_wsgi</cite></a></li>
+<li><a class="reference internal" href="#wsgi">创建一个 <cite>.wsgi</cite> 文件</a></li>
+<li><a class="reference internal" href="#id1">配置 Apache</a></li>
+<li><a class="reference internal" href="#id4">故障排除</a></li>
+<li><a class="reference internal" href="#id5">自动重加载支持</a></li>
+<li><a class="reference internal" href="#id6">使用虚拟环境</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">部署方式</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">部署方式</a></li>
+      <li>Next: <a href="wsgi-standalone.html" title="next chapter">独立 WSGI 容器</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/deploying/mod_wsgi.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/deploying/mod_wsgi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

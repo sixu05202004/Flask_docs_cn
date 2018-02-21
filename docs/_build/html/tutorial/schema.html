@@ -1,0 +1,118 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Step 1: 数据库模式 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Step 2: 应用设置代码" href="setup.html" />
+    <link rel="prev" title="Step 0: 创建文件夹" href="folders.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="step-1">
+<span id="tutorial-schema"></span><h1>Step 1: 数据库模式<a class="headerlink" href="#step-1" title="Permalink to this headline">¶</a></h1>
+<p>首先我们要创建数据库模式。对于这个应用仅一张表就足够了，而且我们只想支持 SQLite ，所以很简单。
+只要把下面的内容放入一个名为 <cite>schema.sql</cite> 的文件，文件置于刚才创建的 <cite>flaskr</cite> 文件夹中：</p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">drop</span> <span class="k">table</span> <span class="k">if</span> <span class="k">exists</span> <span class="n">entries</span><span class="p">;</span>
+<span class="k">create</span> <span class="k">table</span> <span class="n">entries</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="nb">integer</span> <span class="k">primary</span> <span class="k">key</span> <span class="n">autoincrement</span><span class="p">,</span>
+  <span class="n">title</span> <span class="n">string</span> <span class="k">not</span> <span class="k">null</span><span class="p">,</span>
+  <span class="nb">text</span> <span class="n">string</span> <span class="k">not</span> <span class="k">null</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>这个模式由一个称为 <cite>entries</cite> 的单表构成，在这个表中每行包含一个 <cite>id</cite> ，一个 <cite>title</cite> 和一个 <cite>text</cite>。
+<cite>id</cite> 是一个自增的整数而且是主键，其余两个为非空的字符串。</p>
+<p>继续浏览 <a class="reference internal" href="setup.html#tutorial-setup"><span class="std std-ref">Step 2: 应用设置代码</span></a> 。</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">教程</a><ul>
+      <li>Previous: <a href="folders.html" title="previous chapter">Step 0: 创建文件夹</a></li>
+      <li>Next: <a href="setup.html" title="next chapter">Step 2: 应用设置代码</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorial/schema.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/tutorial/schema.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

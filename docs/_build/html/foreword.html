@@ -1,0 +1,131 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>前言 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="给经验丰富的程序员的前言" href="advanced_foreword.html" />
+    <link rel="prev" title="欢迎使用 Flask" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>前言<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>请在开始使用 Flask 之前阅读本文。也希望本文能够回答关于 Flask 项目的初衷以及目标，以及 flask 适用的场景(情境)等问题。</p>
+<div class="section" id="id2">
+<h2>什么是 “微”？<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>“微” (“Micro”) 并不是意味着把整个 Web 应用放入到一个 Python 文件，尽管确实可以这么做。当然“微” (“Micro”) 也不是意味 Flask 的功能上是不足的。微框架中的 “微” (“Micro”) 是指 Flask 旨在保持代码简洁且易于扩展。Flask 不会为你做太多的选择，例如选择什么样的数据库。Flask 为你做的是很容易修改的，比如选择什么样的模版引擎。其它的一切取决于你，因此 Flask 能满足你所需要的。</p>
+<p>默认情况下，Flask 并不包含数据库抽象层，表单验证或者任何其它现有的库( Django )能够处理的。相反，Flask 支持扩展，这些扩展能够添加功能到你的应用，像是 Flask 本身实现的一样。众多的扩展提供了数据库集成，表单验证，上传处理，多种开放的认证技术等功能。Flask 可能是“微”型的，但是已经能够在各种各样的需求中生产使用。</p>
+</div>
+<div class="section" id="id3">
+<h2>配置和约定<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>Flask 有许多带有合理默认值的配置项，也遵循一些惯例。例如：按惯例，模板和静态文件存储在应用 Python 源代码树下的子目录中，而这是可以改变的，你通常不必这么做，尤其是在刚开始的时候。</p>
+</div>
+<div class="section" id="flask">
+<h2>与 Flask 共同成长<a class="headerlink" href="#flask" title="Permalink to this headline">¶</a></h2>
+<p>一旦你的 Flask 项目搭建以及运行起来，你会发现在社区中有大量可用的扩展集成到你的生产环境项目中来。Flask 核心团队会审阅这些扩展，确保经过验证过的扩展在未来版本中仍能使用。</p>
+<p>随着你的代码库的增长，你能够自由地为你的项目做出恰当的设计决定。Flask 会继续尽 Python 的可能提供一个简单的粘合层。你可以在 SQLAlchemy  或者其它数据库工具中实现高级模式，适当的时候引入非关系型数据持久化，使用框架无关的 WSGI 工具，WSGI 是 Python 的 web 接口。</p>
+<p>Flask 中有许多可定制化的钩子。如果你需要更多地定制化，只需要继承 Flask 类就行了。如果对此有兴趣的话，可以查看 <a class="reference internal" href="becomingbig.html#becomingbig"><span class="std std-ref">大型应用</span></a> 。
+如果你对 Flask 设计原理好奇的话，请阅读 <a class="reference internal" href="design.html#design"><span class="std std-ref">Flask 中的设计决策</span></a> 。</p>
+<p>请继续浏览 <a class="reference internal" href="installation.html#installation"><span class="std std-ref">安装</span></a> ，<a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">快速入门</span></a>，或者 <a class="reference internal" href="advanced_foreword.html#advanced-foreword"><span class="std std-ref">给经验丰富的程序员的前言</span></a>。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">前言</a><ul>
+<li><a class="reference internal" href="#id2">什么是 “微”？</a></li>
+<li><a class="reference internal" href="#id3">配置和约定</a></li>
+<li><a class="reference internal" href="#flask">与 Flask 共同成长</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">欢迎使用 Flask</a></li>
+      <li>Next: <a href="advanced_foreword.html" title="next chapter">给经验丰富的程序员的前言</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/foreword.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/foreword.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

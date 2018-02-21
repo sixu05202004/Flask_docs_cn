@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>请求内容校验 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="基于后台作业的 Celery" href="celery.html" />
+    <link rel="prev" title="添加 HTTP Method Overrides" href="methodoverrides.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>请求内容校验<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>各种代码片断中可以消耗请求数据和处理它。比如JSON数据已经阅读并处理请求对象，表单数据结束了，但通过不同的代码路径。这似乎是不方便的，当你想要传入的请求数据来计算校验和。这是必要的，有时一些API。</p>
+<p>幸运的是，然而，这是非常简单的更改，包装的输入流。</p>
+<p>下面的例子计算SHA1校验传入的数据，因为它被读取，并将其存储在WSGI环境:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">hashlib</span>
+
+<span class="k">class</span> <span class="nc">ChecksumCalcStream</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span> <span class="o">=</span> <span class="n">stream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">rv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="nb">bytes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rv</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rv</span>
+
+    <span class="k">def</span> <span class="nf">readline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size_hint</span><span class="p">):</span>
+        <span class="n">rv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stream</span><span class="o">.</span><span class="n">readline</span><span class="p">(</span><span class="n">size_hint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rv</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rv</span>
+
+<span class="k">def</span> <span class="nf">generate_checksum</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">ChecksumCalcStream</span><span class="p">(</span><span class="n">env</span><span class="p">[</span><span class="s1">&#39;wsgi.input&#39;</span><span class="p">])</span>
+    <span class="n">env</span><span class="p">[</span><span class="s1">&#39;wsgi.input&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span>
+    <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">_hash</span>
+</pre></div>
+</div>
+<p>要使用此功能，所有你需要做的是挂钩的计算请求之前开始消耗数据流。
+（例如：小心访问的 <code class="docutils literal"><span class="pre">request.form</span></code> 或任何这种性质的。 例如 <code class="docutils literal"><span class="pre">before_request_handlers</span></code> 应小心，不要访问）。</p>
+<p>使用示例:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/special-api&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">special_api</span><span class="p">():</span>
+    <span class="nb">hash</span> <span class="o">=</span> <span class="n">generate_checksum</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="c1"># Accessing this parses the input stream</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span>
+    <span class="c1"># At this point the hash is fully constructed.</span>
+    <span class="n">checksum</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+    <span class="k">return</span> <span class="s1">&#39;Hash was: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">checksum</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="methodoverrides.html" title="previous chapter">添加 HTTP Method Overrides</a></li>
+      <li>Next: <a href="celery.html" title="next chapter">基于后台作业的 Celery</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/requestchecksum.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/requestchecksum.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

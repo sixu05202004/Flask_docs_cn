@@ -1,0 +1,196 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>应用上下文 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="请求上下文" href="reqcontext.html" />
+    <link rel="prev" title="插拨式视图" href="views.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="app-context">
+<span id="id1"></span><h1>应用上下文<a class="headerlink" href="#app-context" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.9.</span></p>
+</div>
+<p>Flask 背后的一个设计理念是在代码执行的时候存在两种不同的”状态”。应用隐式地处于模块层时配置状态。
+这始于 <code class="xref py py-class docutils literal"><span class="pre">Flask</span></code> 对象实例化，并且当第一个请求传入时，会隐式地结束。当应用处于这种状态时，有如下假设:</p>
+<ul class="simple">
+<li>程序员能够安全地修改应用对象。</li>
+<li>之前没有发生过任何请求处理。</li>
+<li>你需要一个应用对象的引用来修改它，没有魔术代理可以给你一个你正在创建或修改的应用对象的引用。</li>
+</ul>
+<p>相比之下，在请求处理的时候。一些其它的规则存在：</p>
+<ul class="simple">
+<li>当请求是活跃的时候，上下文本地对象( <a class="reference internal" href="api.html#flask.request" title="flask.request"><code class="xref py py-data docutils literal"><span class="pre">flask.request</span></code></a> 和其它的)指向当前请求。</li>
+<li>任何代码在任何时候都能够找到这些对象以供使用。</li>
+</ul>
+<p>这里有一个第三种情况，有一点点差异。有时，你正在用类似请求处理时方式来与应用交互，
+即使并没有活动的请求。想象一下你用交互式 Python shell 与应用交互的情况，或是一个命令行应用的情况。</p>
+<p><a class="reference internal" href="api.html#flask.current_app" title="flask.current_app"><code class="xref py py-data docutils literal"><span class="pre">current_app</span></code></a> 上下文本地变量就是应用上下文驱动的。</p>
+<div class="section" id="id2">
+<h2>应用上下文目的<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>应用上下文存在的主要原因是，在过去，没有更好的方式来在请求上下文中附加一堆函数，
+因为 Flask 设计的支柱之一是你可以在一个 Python 进程中拥有多个应用。</p>
+<p>那么代码如何找到“正确的”应用？在过去，我们推荐显式地到处传递应用，但是这导致没有用这种想法设计的库的问题，因为让库实现这种想法太不方便。</p>
+<p>解决上述问题的常用方法是使用后面将会提到的 <a class="reference internal" href="api.html#flask.current_app" title="flask.current_app"><code class="xref py py-data docutils literal"><span class="pre">current_app</span></code></a> 代理，它被限制在当前请求的应用引用。
+既然无论如何在没有请求时创建一个这样的请求上下文是一个没有必要的昂贵操作，那么就引入了应用上下文。</p>
+</div>
+<div class="section" id="id3">
+<h2>创建一个应用上下文<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>有两种方式创建一个应用上下文。第一种是隐式的方式：无论何时一个请求上下文被压栈， 一个应用上下文会并排创建，如果这是必须的。由于这样的结果，你可以忽略应用上下文的存在，除非你需要它。</p>
+<p>第二种方式是显式地使用 <a class="reference internal" href="api.html#flask.Flask.app_context" title="flask.Flask.app_context"><code class="xref py py-meth docutils literal"><span class="pre">app_context()</span></code></a> 方法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">current_app</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+    <span class="c1"># within this block, current_app points to app.</span>
+    <span class="nb">print</span> <span class="n">current_app</span><span class="o">.</span><span class="n">name</span>
+</pre></div>
+</div>
+<p>如果 <code class="docutils literal"><span class="pre">SERVER_NAME</span></code> 被配置话，应用上下文也能用于 <a class="reference internal" href="api.html#flask.url_for" title="flask.url_for"><code class="xref py py-func docutils literal"><span class="pre">url_for()</span></code></a> 函数。这也允许你即使在没有请求的情况下生成
+URLs。</p>
+</div>
+<div class="section" id="id4">
+<h2>应用上下文的局部变量<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>应用上下文会按需创建并销毁。它不会在线程间移动，并且也不会在请求间共享。如此，它是一个存储数据库连接信息或是别的东西的最佳位置。内部的栈对象称为 <a class="reference internal" href="api.html#flask._app_ctx_stack" title="flask._app_ctx_stack"><code class="xref py py-data docutils literal"><span class="pre">flask._app_ctx_stack</span></code></a>。
+扩展可以在栈的最顶端自由储存信息，前提是使用唯一的名称，相反 <a class="reference internal" href="api.html#flask.g" title="flask.g"><code class="xref py py-data docutils literal"><span class="pre">flask.g</span></code></a> 对象是为用户代码保留。</p>
+<p>关于此更多的信息，请看 <a class="reference internal" href="extensiondev.html#extension-dev"><span class="std std-ref">Flask 扩展开发</span></a>。</p>
+</div>
+<div class="section" id="id5">
+<h2>应用上下文的用法<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>应用上下文通常是用来缓存那些用来请求之前创建的或者请求使用情况下的资源。例如数据库连接是注定要使用应用上下文。
+存储的东西时应该为应用程序上下文选择唯一的名称，因为这是一个 Flask 应用和扩展之间共享的地方。</p>
+<p>最常见的用法是把资源管理划分成两部分：</p>
+<ol class="arabic simple">
+<li>一个隐式的缓存上下文的资源。</li>
+<li>一个基于资源释放的上下文销毁。</li>
+</ol>
+<p>一般来说，<code class="docutils literal"><span class="pre">get_X()</span></code> 函数用于创建资源 <code class="docutils literal"><span class="pre">X</span></code>，如果 <code class="docutils literal"><span class="pre">X</span></code> 不存在的情况下否则会返回同样的资源，
+<code class="docutils literal"><span class="pre">teardown_X()</span></code> 函数注册作为销毁处理器。</p>
+<p>这是个连接数据库的例子:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">g</span>
+
+<span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;_database&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">_database</span> <span class="o">=</span> <span class="n">connect_to_database</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">db</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">teardown_appcontext</span>
+<span class="k">def</span> <span class="nf">teardown_db</span><span class="p">(</span><span class="n">exception</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;_database&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>第一次调用 <code class="docutils literal"><span class="pre">get_db()</span></code> 时，连接将会被建立。建立的过程中隐式地使用了一个 <a class="reference external" href="http://werkzeug.pocoo.org/docs/local/#werkzeug.local.LocalProxy" title="(in Werkzeug v0.14-dev)"><code class="xref py py-class docutils literal"><span class="pre">LocalProxy</span></code></a> 类:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">werkzeug.local</span> <span class="k">import</span> <span class="n">LocalProxy</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">LocalProxy</span><span class="p">(</span><span class="n">get_db</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这样，用户就可以通过 <code class="docutils literal"><span class="pre">get_db()</span></code> 来直接访问 <code class="docutils literal"><span class="pre">db</span></code> 了。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">应用上下文</a><ul>
+<li><a class="reference internal" href="#id2">应用上下文目的</a></li>
+<li><a class="reference internal" href="#id3">创建一个应用上下文</a></li>
+<li><a class="reference internal" href="#id4">应用上下文的局部变量</a></li>
+<li><a class="reference internal" href="#id5">应用上下文的用法</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="views.html" title="previous chapter">插拨式视图</a></li>
+      <li>Next: <a href="reqcontext.html" title="next chapter">请求上下文</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/appcontext.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/appcontext.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

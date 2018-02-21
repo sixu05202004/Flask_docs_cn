@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>实现 API 异常 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="URL 处理器" href="urlprocessors.html" />
+    <link rel="prev" title="应用调度" href="appdispatch.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api">
+<h1>实现 API 异常<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<p>在Flask上层实现 RESTful APIs 是非常常见的。开发者碰到的第一件事情就是内置的异常对于 APIs
+是表达性不足并且使用的内容格式 <code class="docutils literal"><span class="pre">text/html</span></code> 对于 API 使用者用处不大。</p>
+<p>比 <code class="docutils literal"><span class="pre">abort</span></code>  更好的解决方案就是实现自己的异常类型和安装的错误处理器，产生用户期待错误的格式。</p>
+<div class="section" id="id1">
+<h2>简单的异常类<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>其基本思路是引入一个新的异常，该异常可以采取一个适当的人类可读的消息，一个状态的错误代码和
+一些可选的提供更多的错误上下文内容。</p>
+<p>这是一个简单的例子:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">jsonify</span>
+
+<span class="k">class</span> <span class="nc">InvalidUsage</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="n">status_code</span> <span class="o">=</span> <span class="mi">400</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="ne">Exception</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+        <span class="k">if</span> <span class="n">status_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">payload</span>
+
+    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rv</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="ow">or</span> <span class="p">())</span>
+        <span class="n">rv</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span>
+        <span class="k">return</span> <span class="n">rv</span>
+</pre></div>
+</div>
+<p>视图现在可以引起一个带有错误信息的异常。另外一些附加的东西可以通过 <cite>payload</cite> 参数以字典形式提供。</p>
+</div>
+<div class="section" id="id2">
+<h2>注册一个错误处理器<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>在这个时候视图可以引起一个错误，但是它会立即导致内部服务器错误。原因是没有为这个错误类注册处理器。:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">errorhandler</span><span class="p">(</span><span class="n">InvalidAPIUsage</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">handle_invalid_usage</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">status_code</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>视图中的用法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>这里是视图使用这个函数的方法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/foo&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_foo</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="n">InvalidUsage</span><span class="p">(</span><span class="s1">&#39;This view is gone&#39;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">410</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">实现 API 异常</a><ul>
+<li><a class="reference internal" href="#id1">简单的异常类</a></li>
+<li><a class="reference internal" href="#id2">注册一个错误处理器</a></li>
+<li><a class="reference internal" href="#id3">视图中的用法</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="appdispatch.html" title="previous chapter">应用调度</a></li>
+      <li>Next: <a href="urlprocessors.html" title="next chapter">URL 处理器</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/apierrors.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/apierrors.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,161 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>uWSGI &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FastCGI" href="fastcgi.html" />
+    <link rel="prev" title="独立 WSGI 容器" href="wsgi-standalone.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uwsgi">
+<span id="deploying-uwsgi"></span><h1>uWSGI<a class="headerlink" href="#uwsgi" title="Permalink to this headline">¶</a></h1>
+<p>uWSGI 也是部署 Flask 的途径之一,类似的部署途径还有 <a class="reference external" href="http://nginx.org/">nginx</a> 、 <a class="reference external" href="http://www.lighttpd.net/">lighttpd</a> 和
+<a class="reference external" href="http://www.cherokee-project.com/">cherokee</a> 。其他部署途径的信息参见 <a class="reference internal" href="fastcgi.html#deploying-fastcgi"><span class="std std-ref">FastCGI</span></a> 和
+<a class="reference internal" href="wsgi-standalone.html#deploying-wsgi-standalone"><span class="std std-ref">独立 WSGI 容器</span></a> 。使用 uWSGI 协议来部署 WSGI 应用的先决条件是
+需要一个 uWSGI 服务器。 uWSGI 既是一个协议也是一个服务器。如果作为一个服务器，
+它可以服务于 uWSGI 、 FastCGI 和 HTTP 协议。</p>
+<p>最流行的 uWSGI 服务器是 <a class="reference external" href="http://projects.unbit.it/uwsgi/">uwsgi</a> ，本文将使用它来举例，请先安装它。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">小心</p>
+<p class="last">请务必把 <code class="docutils literal"><span class="pre">app.run()</span></code> 放在 <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">'__main__':</span></code> 内部或者放在单独
+的文件中，这样可以保证它不会被调用。因为，每调用一次就会开启一个本地 WSGI
+服务器。当我们使用 uWSGI 部署应用时，不需要使用本地服务器。</p>
+</div>
+<div class="section" id="id1">
+<h2>使用 uwsgi 启动你的应用<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><cite>uwsgi</cite> 是基于 python 模块中的 WSGI 调用的。假设 Flask 应用名称为 myapp.py ，
+可以使用以下命令：</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ uwsgi -s /tmp/uwsgi.sock --module myapp --callable app
+</pre></div>
+</div>
+<p>或者这个命令也行：</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span>$ uwsgi -s /tmp/uwsgi.sock -w myapp:app
+</pre></div>
+</div>
+</div>
+<div class="section" id="nginx">
+<h2>配置 nginx<a class="headerlink" href="#nginx" title="Permalink to this headline">¶</a></h2>
+<p>一个 nginx 的基本 uWSGI 配置如下:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>location = /yourapplication { rewrite ^ /yourapplication/; }
+location /yourapplication { try_files $uri @yourapplication; }
+location @yourapplication {
+  include uwsgi_params;
+  uwsgi_param SCRIPT_NAME /yourapplication;
+  uwsgi_modifier1 30;
+  uwsgi_pass unix:/tmp/uwsgi.sock;
+}
+</pre></div>
+</div>
+<p>这个配置把应用绑定到 <cite>/yourapplication</cite> 。如果你想要在根 URL 下运行应用非常
+简单，因为你不必指出 WSGI <cite>PATH_INFO</cite> 或让 uwsgi 修改器来使用它:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>location / { try_files $uri @yourapplication; }
+location @yourapplication {
+    include uwsgi_params;
+    uwsgi_pass unix:/tmp/uwsgi.sock;
+}
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">uWSGI</a><ul>
+<li><a class="reference internal" href="#id1">使用 uwsgi 启动你的应用</a></li>
+<li><a class="reference internal" href="#nginx">配置 nginx</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">部署方式</a><ul>
+      <li>Previous: <a href="wsgi-standalone.html" title="previous chapter">独立 WSGI 容器</a></li>
+      <li>Next: <a href="fastcgi.html" title="next chapter">FastCGI</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/deploying/uwsgi.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/deploying/uwsgi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

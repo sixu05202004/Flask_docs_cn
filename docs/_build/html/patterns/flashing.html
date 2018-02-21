@@ -1,0 +1,241 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>消息闪现 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="用 jQuery 实现 Ajax" href="jquery.html" />
+    <link rel="prev" title="模板继承" href="templateinheritance.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="message-flashing-pattern">
+<span id="id1"></span><h1>消息闪现<a class="headerlink" href="#message-flashing-pattern" title="Permalink to this headline">¶</a></h1>
+<p>一个好的应用和用户界面都需要良好的反馈。如果用户得不到足够的反馈，那么应用最终
+会被用户唾弃。 Flask 的闪现系统提供了一个良好的反馈方式。闪现系统的基本工作方式
+是：在且只在下一个请求中访问上一个请求结束时记录的消息。一般我们结合布局模板来
+使用闪现系统。</p>
+<div class="section" id="id2">
+<h2>简单的例子<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>以下是一个完整的示例:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> \
+     <span class="n">request</span><span class="p">,</span> <span class="n">url_for</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">secret_key</span> <span class="o">=</span> <span class="s1">&#39;some_secret&#39;</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index.html&#39;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;admin&#39;</span> <span class="ow">or</span> \
+           <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;secret&#39;</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;Invalid credentials&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;You were successfully logged in&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;login.html&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>以下是实现闪现的 <code class="docutils literal"><span class="pre">layout.html</span></code> 模板：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">&lt;!doctype html&gt;</span>
+<span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>My Application<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+<span class="cp">{%</span> <span class="k">with</span> <span class="nv">messages</span> <span class="o">=</span> <span class="nv">get_flashed_messages</span><span class="o">()</span> <span class="cp">%}</span>
+  <span class="cp">{%</span> <span class="k">if</span> <span class="nv">messages</span> <span class="cp">%}</span>
+    <span class="p">&lt;</span><span class="nt">ul</span> <span class="na">class</span><span class="o">=</span><span class="s">flashes</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">for</span> <span class="nv">message</span> <span class="k">in</span> <span class="nv">messages</span> <span class="cp">%}</span>
+      <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span><span class="cp">{{</span> <span class="nv">message</span> <span class="cp">}}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+    <span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+  <span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">endwith</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<p>以下是 index.html 模板：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">extends</span> <span class="s2">&quot;layout.html&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Overview<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>Do you want to <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">url_for</span><span class="o">(</span><span class="s1">&#39;login&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span>log in?<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<p>login 模板：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">extends</span> <span class="s2">&quot;layout.html&quot;</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Login<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+  <span class="cp">{%</span> <span class="k">if</span> <span class="nv">error</span> <span class="cp">%}</span>
+    <span class="p">&lt;</span><span class="nt">p</span> <span class="na">class</span><span class="o">=</span><span class="s">error</span><span class="p">&gt;&lt;</span><span class="nt">strong</span><span class="p">&gt;</span>Error:<span class="p">&lt;/</span><span class="nt">strong</span><span class="p">&gt;</span> <span class="cp">{{</span> <span class="nv">error</span> <span class="cp">}}</span>
+  <span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+  <span class="p">&lt;</span><span class="nt">form</span> <span class="na">action</span><span class="o">=</span><span class="s">&quot;&quot;</span> <span class="na">method</span><span class="o">=</span><span class="s">post</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">dl</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">dt</span><span class="p">&gt;</span>Username:
+      <span class="p">&lt;</span><span class="nt">dd</span><span class="p">&gt;&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">text</span> <span class="na">name</span><span class="o">=</span><span class="s">username</span> <span class="na">value</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span>
+          <span class="nv">request.form.username</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">dt</span><span class="p">&gt;</span>Password:
+      <span class="p">&lt;</span><span class="nt">dd</span><span class="p">&gt;&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">password</span> <span class="na">name</span><span class="o">=</span><span class="s">password</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">dl</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">submit</span> <span class="na">value</span><span class="o">=</span><span class="s">Login</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>闪现消息的类别<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.3.</span></p>
+</div>
+<p>闪现消息还可以指定类别，如果没有指定，那么缺省的类别为 <code class="docutils literal"><span class="pre">'message'</span></code> 。不同的
+类别可以给用户提供更好的反馈。例如错误消息可以使用红色背景。</p>
+<p>使用 <a class="reference internal" href="../api.html#flask.flash" title="flask.flash"><code class="xref py py-func docutils literal"><span class="pre">flash()</span></code></a> 函数可以指定消息的类别:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flash</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;Invalid password provided&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>模板中的 <a class="reference internal" href="../api.html#flask.get_flashed_messages" title="flask.get_flashed_messages"><code class="xref py py-func docutils literal"><span class="pre">get_flashed_messages()</span></code></a> 函数也应当返回类别，显示消息的循环
+也要略作改变：</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">with</span> <span class="nv">messages</span> <span class="o">=</span> <span class="nv">get_flashed_messages</span><span class="o">(</span><span class="nv">with_categories</span><span class="o">=</span><span class="kp">true</span><span class="o">)</span> <span class="cp">%}</span>
+  <span class="cp">{%</span> <span class="k">if</span> <span class="nv">messages</span> <span class="cp">%}</span>
+    <span class="p">&lt;</span><span class="nt">ul</span> <span class="na">class</span><span class="o">=</span><span class="s">flashes</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">for</span> <span class="nv">category</span><span class="o">,</span> <span class="nv">message</span> <span class="k">in</span> <span class="nv">messages</span> <span class="cp">%}</span>
+      <span class="p">&lt;</span><span class="nt">li</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">category</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span><span class="cp">{{</span> <span class="nv">message</span> <span class="cp">}}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+    <span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+  <span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">endwith</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<p>上例展示如何根据类别渲染消息，还可以给消息加上前缀，如
+<code class="docutils literal"><span class="pre">&lt;strong&gt;Error:&lt;/strong&gt;</span></code> 。</p>
+</div>
+<div class="section" id="id4">
+<h2>过滤闪现消息<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.9.</span></p>
+</div>
+<p>你可以视情况通过传递一个类别列表来过滤 <a class="reference internal" href="../api.html#flask.get_flashed_messages" title="flask.get_flashed_messages"><code class="xref py py-func docutils literal"><span class="pre">get_flashed_messages()</span></code></a> 的
+结果。这个功能有助于在不同位置显示不同类别的消息。</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">with</span> <span class="nv">errors</span> <span class="o">=</span> <span class="nv">get_flashed_messages</span><span class="o">(</span><span class="nv">category_filter</span><span class="o">=[</span><span class="s2">&quot;error&quot;</span><span class="o">])</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">if</span> <span class="nv">errors</span> <span class="cp">%}</span>
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;alert-message block-message error&quot;</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">a</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;close&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;#&quot;</span><span class="p">&gt;</span>×<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span>
+    <span class="cp">{%</span>- <span class="k">for</span> <span class="nv">msg</span> <span class="k">in</span> <span class="nv">errors</span> <span class="cp">%}</span>
+    <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span><span class="cp">{{</span> <span class="nv">msg</span> <span class="cp">}}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">endfor</span> -<span class="cp">%}</span>
+  <span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+<span class="cp">{%</span> <span class="k">endwith</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">消息闪现</a><ul>
+<li><a class="reference internal" href="#id2">简单的例子</a></li>
+<li><a class="reference internal" href="#id3">闪现消息的类别</a></li>
+<li><a class="reference internal" href="#id4">过滤闪现消息</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="templateinheritance.html" title="previous chapter">模板继承</a></li>
+      <li>Next: <a href="jquery.html" title="next chapter">用 jQuery 实现 Ajax</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/flashing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/flashing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

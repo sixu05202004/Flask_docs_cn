@@ -1,0 +1,243 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>请求上下文 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="用蓝图实现模块化应用" href="blueprints.html" />
+    <link rel="prev" title="应用上下文" href="appcontext.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="request-context">
+<span id="id1"></span><h1>请求上下文<a class="headerlink" href="#request-context" title="Permalink to this headline">¶</a></h1>
+<p>这部分文档描述了在 Flask 0.7 中的行为，与旧的行为基本一致，但有细小微妙的差异。</p>
+<p>强烈建议先阅读 <a class="reference internal" href="appcontext.html#app-context"><span class="std std-ref">应用上下文</span></a> 。</p>
+<div class="section" id="id2">
+<h2>深入与上下文本地变量<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>比如说你有一个应用函数返回用户应该跳转到的 URL 。想象它总是会跳转到 URL 的 next 参数，
+或 HTTP referrer ，或索引页:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">url_for</span>
+
+<span class="k">def</span> <span class="nf">redirect_url</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="n">request</span><span class="o">.</span><span class="n">referrer</span> <span class="ow">or</span> \
+           <span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>正如你所见，它访问了请求对象。如果你试图从纯的 Python shell 上运行，你将会看到这样的异常：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">redirect_url</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;NoneType&#39; object has no attribute &#39;request&#39;</span>
+</pre></div>
+</div>
+<p>这有很大意义，因为我们当前并没有可以访问的请求。所以我们需要制造一个请求并且绑定到当前的上下文。
+<a class="reference internal" href="api.html#flask.Flask.test_request_context" title="flask.Flask.test_request_context"><code class="xref py py-attr docutils literal"><span class="pre">test_request_context</span></code></a> 方法为我们创建一个 <a class="reference internal" href="api.html#flask.ctx.RequestContext" title="flask.ctx.RequestContext"><code class="xref py py-class docutils literal"><span class="pre">RequestContext</span></code></a>：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">test_request_context</span><span class="p">(</span><span class="s1">&#39;/?next=http://example.com/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>可以通过两种方式利用这个上下文。使用 <cite>with</cite> 声明或是调用 <a class="reference internal" href="api.html#flask.ctx.RequestContext.push" title="flask.ctx.RequestContext.push"><code class="xref py py-meth docutils literal"><span class="pre">push()</span></code></a> 和 <a class="reference internal" href="api.html#flask.ctx.RequestContext.pop" title="flask.ctx.RequestContext.pop"><code class="xref py py-meth docutils literal"><span class="pre">pop()</span></code></a> 方法：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">push</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>从这起，您可以使用request对象：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">redirect_url</span><span class="p">()</span>
+<span class="go">u&#39;http://example.com/&#39;</span>
+</pre></div>
+</div>
+<p>直到你调用 <cite>pop</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>因为请求上下文在内部作为一个栈来维护，所以你可以多次压栈出栈。这在实现内部重定向之类的东西时很方便。</p>
+<p>更多如何从交互式 Python shell 中利用请求上下文的信息，请参阅 <a class="reference internal" href="shell.html#shell"><span class="std std-ref">在 Shell 中使用 Flask</span></a> 章节。</p>
+</div>
+<div class="section" id="id3">
+<h2>上下文如何工作<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>如果你研究 Flask WSGI 应用内部如何工作，你会找到和这非常相似的一段代码:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">wsgi_app</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">environ</span><span class="p">):</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_context</span><span class="p">(</span><span class="n">environ</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_dispatch_request</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_exception</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">(</span><span class="n">environ</span><span class="p">,</span> <span class="n">start_response</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-meth docutils literal"><span class="pre">request_context()</span></code> 方法返回一个新的 <a class="reference internal" href="api.html#flask.ctx.RequestContext" title="flask.ctx.RequestContext"><code class="xref py py-class docutils literal"><span class="pre">RequestContext</span></code></a> 对象，并结合 <cite>with</cite> 声明来绑定上下文。 从相同线程中被调用的一切，直到 <cite>with</cite> 声明结束前，都可以访问全局的请求 变量( <a class="reference internal" href="api.html#flask.request" title="flask.request"><code class="xref py py-data docutils literal"><span class="pre">flask.request</span></code></a> 和其它)。</p>
+<p>请求上下文内部工作如同一个栈。栈顶是当前活动的请求。<a class="reference internal" href="api.html#flask.ctx.RequestContext.push" title="flask.ctx.RequestContext.push"><code class="xref py py-meth docutils literal"><span class="pre">push()</span></code></a> 把上下文添加到栈顶，<a class="reference internal" href="api.html#flask.ctx.RequestContext.pop" title="flask.ctx.RequestContext.pop"><code class="xref py py-meth docutils literal"><span class="pre">pop()</span></code></a> 把它移除栈。在出栈时，应用的 <a class="reference internal" href="api.html#flask.Flask.teardown_request" title="flask.Flask.teardown_request"><code class="xref py py-func docutils literal"><span class="pre">teardown_request()</span></code></a> 函数也会被执行。</p>
+<p>另一件需要注意的事是，请求上下文被压入栈时，并且没有当前应用的应用上下文，它会自动创建一个 <a class="reference internal" href="appcontext.html#app-context"><span class="std std-ref">application context</span></a> 。</p>
+</div>
+<div class="section" id="callbacks-and-errors">
+<span id="id4"></span><h2>回调和错误<a class="headerlink" href="#callbacks-and-errors" title="Permalink to this headline">¶</a></h2>
+<p>在 Flask 中，请求处理时发生一个错误时会发生什么？这个特殊的行为在 0.7 中 变更了，因为我们想要更简单地得知实际发生了什么。新的行为相当简单:</p>
+<ol class="arabic simple">
+<li>在每个请求之前，执行 <a class="reference internal" href="api.html#flask.Flask.before_request" title="flask.Flask.before_request"><code class="xref py py-meth docutils literal"><span class="pre">before_request()</span></code></a> 上绑定的函数。
+如果这些函数中的某个返回了一个响应，其它的函数将不再被调用。任何情况下，无论如何这个返回值都会替换视图的返回值。</li>
+<li>如果 <a class="reference internal" href="api.html#flask.Flask.before_request" title="flask.Flask.before_request"><code class="xref py py-meth docutils literal"><span class="pre">before_request()</span></code></a> 上绑定的函数没有返回一个响应，
+常规的请求处理将会生效，匹配的视图函数有机会返回一个响应。</li>
+<li>视图的返回值之后会被转换成一个实际的响应对象，并交给 <a class="reference internal" href="api.html#flask.Flask.after_request" title="flask.Flask.after_request"><code class="xref py py-meth docutils literal"><span class="pre">after_request()</span></code></a> 上绑定的函数适当地替换或修改它。</li>
+<li>在请求的最后，会执行 <a class="reference internal" href="api.html#flask.Flask.teardown_request" title="flask.Flask.teardown_request"><code class="xref py py-meth docutils literal"><span class="pre">teardown_request()</span></code></a> 上绑定的函数。
+这总会发生，即使在一个未处理的异常抛出后或是没有请求前处理器执行过 （例如在测试环境中你有时会想不执行请求前回调）。</li>
+</ol>
+<p>现在错误时会发生什么？在生产模式中，如果一个异常没有被捕获，将调用 500 internal server 的处理。在生产模式中，即便异常没有被处理过，也会冒泡给 WSGI 服务器。如此，像交互式调试器这样的东西可以提供丰富的调试信息。</p>
+<p>在 0.7 中做出的重大变更，是内部服务器错误不再被请求后回调传递处理，而且请求后回调也不再保证会执行。这使得内部的调度代码更简洁，易于定制和理解。</p>
+<p>新的绑定于销毁请求的函数被认为是用于代替那些请求的最后绝对要发生的事。</p>
+</div>
+<div class="section" id="id5">
+<h2>销毁回调<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>销毁回调是特殊的回调，因为它们在不同的点上执行。严格地说，它们不依赖实际的请求处理，因为它们限定在 <a class="reference internal" href="api.html#flask.ctx.RequestContext" title="flask.ctx.RequestContext"><code class="xref py py-class docutils literal"><span class="pre">RequestContext</span></code></a> 的生命周期。 当请求上下文出栈时， <a class="reference internal" href="api.html#flask.Flask.teardown_request" title="flask.Flask.teardown_request"><code class="xref py py-meth docutils literal"><span class="pre">teardown_request()</span></code></a> 上绑定的函数会被调用。</p>
+<p>这对于了解请求上下文的寿命是否因为在 with 声明中使用测试客户端或在命令行中使用请求上下文时被延长很重要:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">test_client</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/foo&#39;</span><span class="p">)</span>
+    <span class="c1"># the teardown functions are still not called at that point</span>
+    <span class="c1"># even though the response ended and you have the response</span>
+    <span class="c1"># object in your hand</span>
+
+<span class="c1"># only when the code reaches this point the teardown functions</span>
+<span class="c1"># are called.  Alternatively the same thing happens if another</span>
+<span class="c1"># request was triggered from the test client</span>
+</pre></div>
+</div>
+<p>从这些命令行操作中，很容易看出它的行为:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@app</span><span class="o">.</span><span class="n">teardown_request</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">teardown_request</span><span class="p">(</span><span class="n">exception</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="s1">&#39;this runs after request&#39;</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">test_request_context</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">push</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="go">this runs after request</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>注意销毁回调总是会被执行，即使没有请求前回调执行过，或是异常发生。
+测试系统的特定部分也会临时地在不调用请求前处理器的情况下创建请求上下文。
+确保你写的请求销毁处理器不会报错。</p>
+</div>
+<div class="section" id="notes-on-proxies">
+<span id="id6"></span><h2>代理注意事项<a class="headerlink" href="#notes-on-proxies" title="Permalink to this headline">¶</a></h2>
+<p>Flask 中提供的一些对象是其它对象的代理。背后的原因是，这些代理在线程间共享， 并且它们在必要的情景中被调度到限定在一个线程中的实际的对象。</p>
+<p>大多数时间你不需要关心它，但是在一些例外情况中，知道一个对象实际上是代理是有益的:</p>
+<ul class="simple">
+<li>代理对象不会伪造它们继承的类型，所以如果你想运行真正的实例检查，
+你需要在被代理的实例上这么做(见下面的 <cite>_get_current_object</cite>)。</li>
+<li>如果对象引用是重要的(例如发送 <a class="reference internal" href="signals.html#signals"><span class="std std-ref">信号</span></a> )。</li>
+</ul>
+<p>如果你需要访问潜在的被代理的对象，你可以使用 <a class="reference external" href="http://werkzeug.pocoo.org/docs/local/#werkzeug.local.LocalProxy._get_current_object" title="(in Werkzeug v0.14-dev)"><code class="xref py py-meth docutils literal"><span class="pre">_get_current_object()</span></code></a> 方法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">_get_current_object</span><span class="p">()</span>
+<span class="n">my_signal</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h2>错误时上下文保存<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>无论错误出现与否，在请求的最后，请求上下文会出栈，并且相关的所有数据会被 销毁。在开发中，当你想在异常发生时，长期地获取周围的信息，这会成为麻烦。 在 Flask 0.6 和更早版本中的调试模式，如果发生异常，请求上下文不会被弹出栈，这样交互式调试器才能提供给你重要信息.</p>
+<p>从 Flask 0.7 开始，我们设定 <code class="docutils literal"><span class="pre">PRESERVE_CONTEXT_ON_EXCEPTION</span></code> 配置变量来更好地控制该行为。这个值默认与 <code class="docutils literal"><span class="pre">DEBUG</span></code> 的设置相关。当应用工作在调试模式下时，上下文会被保护，而生产模式下相反。</p>
+<p>不要在生产模式强制激活 <code class="docutils literal"><span class="pre">PRESERVE_CONTEXT_ON_EXCEPTION</span></code> ，因为它会导致在 异常时应用的内存泄露。不过，它在开发时获取开发模式下相同的错误行为来试图调试一个只有生产设置下才发生的错误时很有用。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">请求上下文</a><ul>
+<li><a class="reference internal" href="#id2">深入与上下文本地变量</a></li>
+<li><a class="reference internal" href="#id3">上下文如何工作</a></li>
+<li><a class="reference internal" href="#callbacks-and-errors">回调和错误</a></li>
+<li><a class="reference internal" href="#id5">销毁回调</a></li>
+<li><a class="reference internal" href="#notes-on-proxies">代理注意事项</a></li>
+<li><a class="reference internal" href="#id7">错误时上下文保存</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="appcontext.html" title="previous chapter">应用上下文</a></li>
+      <li>Next: <a href="blueprints.html" title="next chapter">用蓝图实现模块化应用</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/reqcontext.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/reqcontext.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

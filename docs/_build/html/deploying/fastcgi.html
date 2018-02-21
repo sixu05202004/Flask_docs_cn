@@ -1,0 +1,247 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>FastCGI &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CGI" href="cgi.html" />
+    <link rel="prev" title="uWSGI" href="uwsgi.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="fastcgi">
+<span id="deploying-fastcgi"></span><h1>FastCGI<a class="headerlink" href="#fastcgi" title="Permalink to this headline">¶</a></h1>
+<p>FastCGI 是在像 <a class="reference external" href="http://nginx.org/">nginx</a> 、 <a class="reference external" href="http://www.lighttpd.net/">lighttpd</a> 和 <a class="reference external" href="http://www.cherokee-project.com/">cherokee</a> 服务器上的一个部署选择。
+其它选择见 <a class="reference internal" href="uwsgi.html#deploying-uwsgi"><span class="std std-ref">uWSGI</span></a> 和 <a class="reference internal" href="wsgi-standalone.html#deploying-wsgi-standalone"><span class="std std-ref">独立 WSGI 容器</span></a> 章节。
+在它们上的任何一个运行你的 WSGI 应用首先需要一个 FastCGI 服务器。最流行的一个
+是 <a class="reference external" href="http://trac.saddi.com/flup">flup</a> ，我们会在本指导中使用它。确保你已经安装好它来跟随下面的说明。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">注意</p>
+<p class="last">请提前确保你在应用文件中的任何 <code class="docutils literal"><span class="pre">app.run()</span></code> 调用在 <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span>
+<span class="pre">'__main__':</span></code> 块中或是移到一个独立的文件。这是因为它总会启动一个本地
+的 WSGI 服务器，并且我们在部署应用到 uWSGI 时不需要它。</p>
+</div>
+<div class="section" id="fcgi">
+<h2>创建一个 <cite>.fcgi</cite> 文件<a class="headerlink" href="#fcgi" title="Permalink to this headline">¶</a></h2>
+<p>首先你需要创建一个 FastCGI 服务器文件。让我们把它叫做
+<cite>yourapplication.fcgi</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="kn">from</span> <span class="nn">flup.server.fcgi</span> <span class="k">import</span> <span class="n">WSGIServer</span>
+<span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">WSGIServer</span><span class="p">(</span><span class="n">app</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>这已经可以为 Apache 工作，而 nginx 和老版本的 lighttpd 需要传递一个
+显式的 socket 来与 FastCGI 通信。为此，你需要传递 socket 的路径到
+<code class="xref py py-class docutils literal"><span class="pre">WSGIServer</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">WSGIServer</span><span class="p">(</span><span class="n">application</span><span class="p">,</span> <span class="n">bindAddress</span><span class="o">=</span><span class="s1">&#39;/path/to/fcgi.sock&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>这个路径一定与你在服务器配置中定义的路径相同。</p>
+<p>把 <cite>yourapplication.fcgi</cite> 文件保存到你能找到的地方。保存在
+<cite>/var/www/yourapplication</cite> 或类似的地方是有道理的。</p>
+<p>确保这个文件有执行权限，这样服务器才能执行它:</p>
+<div class="highlight-text"><div class="highlight"><pre><span></span># chmod +x /var/www/yourapplication/yourapplication.fcgi
+</pre></div>
+</div>
+</div>
+<div class="section" id="lighttpd">
+<h2>配置 lighttpd<a class="headerlink" href="#lighttpd" title="Permalink to this headline">¶</a></h2>
+<p>一个给 lighttpd 的基本的 FastCGI 配置看起来是这样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fastcgi</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;/yourapplication.fcgi&quot;</span> <span class="o">=&gt;</span>
+    <span class="p">((</span>
+        <span class="s2">&quot;socket&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;/tmp/yourapplication-fcgi.sock&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bin-path&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;/var/www/yourapplication/yourapplication.fcgi&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;check-local&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;disable&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;max-procs&quot;</span> <span class="o">=&gt;</span> <span class="mi">1</span>
+    <span class="p">))</span>
+<span class="p">)</span>
+
+<span class="n">alias</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;/static/&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;/path/to/your/static&quot;</span>
+<span class="p">)</span>
+
+<span class="n">url</span><span class="o">.</span><span class="n">rewrite</span><span class="o">-</span><span class="n">once</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;^(/static.*)$&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;$1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;^(/.*)$&quot;</span> <span class="o">=&gt;</span> <span class="s2">&quot;/yourapplication.fcgi$1&quot;</span>
+</pre></div>
+</div>
+<p>记得启用 FastCGI ，别名和重写模块。这份配置把应用绑定到
+<cite>/yourapplication</cite> 。如果想要应用运行在 URL 根路径，你需要用
+<code class="xref py py-class docutils literal"><span class="pre">LighttpdCGIRootFix</span></code> 中间件来处理
+一个 lighttpd 的 bug 。</p>
+<p>确保只在应用挂载到 URL 根路径时才应用它。同样，更多信息请翻阅 Lighty
+的文档关于 <a class="reference external" href="http://redmine.lighttpd.net/wiki/lighttpd/Docs:ModFastCGI">FastCGI and
+Python</a>
+的部分（注意显示传递一个 socket 到 run() 不再是必须的）。</p>
+</div>
+<div class="section" id="nginx">
+<h2>配置 nginx<a class="headerlink" href="#nginx" title="Permalink to this headline">¶</a></h2>
+<p>在 nginx 上安装 FastCGI 应用有一点不同，因为默认没有 FastCGI 参数被转
+发。</p>
+<p>一个给 nginx 的基本的 FastCGI 配置看起来是这样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>location = /yourapplication { rewrite ^ /yourapplication/ last; }
+location /yourapplication { try_files $uri @yourapplication; }
+location @yourapplication {
+    include fastcgi_params;
+    fastcgi_split_path_info ^(/yourapplication)(.*)$;
+    fastcgi_param PATH_INFO $fastcgi_path_info;
+    fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+    fastcgi_pass unix:/tmp/yourapplication-fcgi.sock;
+}
+</pre></div>
+</div>
+<p>这份配置把应用绑定到 <cite>/yourapplication</cite> 。如果你想要绑定到 URL 跟了路径
+会更简单，因为你不需要指出如何获取 <cite>PATH_INFO</cite> 和 <cite>SCRIPT_NAME</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>location / { try_files $uri @yourapplication; }
+location @yourapplication {
+    include fastcgi_params;
+    fastcgi_param PATH_INFO $fastcgi_script_name;
+    fastcgi_param SCRIPT_NAME &quot;&quot;;
+    fastcgi_pass unix:/tmp/yourapplication-fcgi.sock;
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>运行 FastCGI 进程<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>既然 Nginx 和其它服务器并不加载 FastCGI 应用，你需要手动这么做。
+<a class="reference external" href="http://supervisord.org/configuration.html#fcgi-program-x-section-settings">Supervisor 可以管理 FastCGI 进程。</a>
+你可以寻找其它 FastCGI 进程管理器或写一个启动时运行 <cite>.fcgi</cite> 文件的脚本，
+例如使用一个 SysV <code class="docutils literal"><span class="pre">init.d</span></code> 脚本。对于临时的解决方案，你总是可以在 GNU
+screen 中运行 <code class="docutils literal"><span class="pre">.fcgi</span></code> 。更多细节见 <code class="docutils literal"><span class="pre">man</span> <span class="pre">screen</span></code> ，注意这是一个手动
+的解决方案，并且不会在系统重启后保留:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ screen
+$ /var/www/yourapplication/yourapplication.fcgi
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>调试<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>FastCGI 在大多数 web 服务器上的部署，对于调试趋于复杂。服务器日志最经常
+告诉发生的事就是成行的“未预期的标头结尾”。为了调试应用，唯一可以让你了解
+什么东西破碎的方案就是切换到正确的用户并手动执行应用。</p>
+<p>这个例子假设你的应用叫做 <cite>application.fcgi</cite> 并且你的 web 服务器用户是
+<cite>www-data</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ su www-data
+$ cd /var/www/yourapplication
+$ python application.fcgi
+Traceback (most recent call last):
+  File &quot;yourapplication.fcgi&quot;, line 4, in &lt;module&gt;
+ImportError: No module named yourapplication
+</pre></div>
+</div>
+<p>在这种情况下，错误看起来是“yourapplication”不在 python 路径下。常见的
+问题是:</p>
+<ul class="simple">
+<li>使用了相对路径。不要依赖于当前工作目录</li>
+<li>代码依赖于不是从 web 服务器设置的环境变量</li>
+<li>使用了不同的 python 解释器</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">FastCGI</a><ul>
+<li><a class="reference internal" href="#fcgi">创建一个 <cite>.fcgi</cite> 文件</a></li>
+<li><a class="reference internal" href="#lighttpd">配置 lighttpd</a></li>
+<li><a class="reference internal" href="#nginx">配置 nginx</a></li>
+<li><a class="reference internal" href="#id1">运行 FastCGI 进程</a></li>
+<li><a class="reference internal" href="#id2">调试</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">部署方式</a><ul>
+      <li>Previous: <a href="uwsgi.html" title="previous chapter">uWSGI</a></li>
+      <li>Next: <a href="cgi.html" title="next chapter">CGI</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/deploying/fastcgi.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/deploying/fastcgi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

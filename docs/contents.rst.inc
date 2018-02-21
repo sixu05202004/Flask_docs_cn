@@ -56,3 +56,4 @@ API参考
    upgrading
    changelog
    license
+   contributing

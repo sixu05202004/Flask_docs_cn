@@ -1,0 +1,229 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>安全注意事项 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Flask 中的 Unicode" href="unicode.html" />
+    <link rel="prev" title="HTML/XHTML 常见问题" href="htmlfaq.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>安全注意事项<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>Web 应用通常面临所有种类的安全问题，并且很难把所有事做的正确。 Flask 视图
+为你解决这些事情中的一些，但你仍需要关心更多的问题。</p>
+<div class="section" id="xss">
+<span id="id2"></span><h2>跨站脚本攻击（XSS）<a class="headerlink" href="#xss" title="Permalink to this headline">¶</a></h2>
+<p>跨站脚本攻击的概念是在一个网站的上下文中注入任意的 HTML （以及附带的
+JavaScript ）。开发者需要妥善地转义文本，使其不包含任意 HTML 标签来避免
+这种攻击。更多的信息请阅读维基百科上关于 <a class="reference external" href="http://en.wikipedia.org/wiki/Cross-site_scripting">Cross-Site Scripting</a> 的文章。</p>
+<p>Flask 配置 Jinja2 自动转义所有值，除非显式地指明不转义。这就排除了模板导
+致的所有 XSS 问题，但是你仍需要在其它的地方小心:</p>
+<ul class="simple">
+<li>生成 HTML 而不使用 Jinja2</li>
+<li>在用户提交的数据上调用了 <a class="reference internal" href="api.html#flask.Markup" title="flask.Markup"><code class="xref py py-class docutils literal"><span class="pre">Markup</span></code></a></li>
+<li>发送上传的 HTML 文件，永远不要这么做，使用
+<cite>Content-Disposition: attachment</cite> 标头来避免这个问题</li>
+<li>发送上传的文本文件。一些浏览器使用基于开头几个字节的 content-type
+猜测，所以用户可能欺骗浏览器执行 HTML</li>
+</ul>
+<p>另一件非常重要的事情是未用引号包裹的属性。虽然 Jinja2 可以通过转义 HTML
+来保护你免受 XSS 问题，仍有一种情况，它不能保护你: 属性注入的 XSS 。为了
+应对这种攻击媒介，确保当在属性中使用 Jinja 表达式时，始终用单引号或双引号
+包裹属性:</p>
+<div class="highlight-html+jinja"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">href</span> <span class="cp">}}</span><span class="s">&quot;</span><span class="p">&gt;</span>the text<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>为什么这是必要的？因为如果你不这么做，攻击者可以容易地注入自制的
+JavaScript 处理器。譬如一个攻击者可以注入这段 HTML+JavaScript:</p>
+<div class="highlight-html"><div class="highlight"><pre><span></span>onmouseover=alert(document.cookie)
+</pre></div>
+</div>
+<p>当用户鼠标经过这个链接， 会在警告窗口里把 cookie 显示给用户。一个有效的
+攻击者可能也会执行其它的 JavaScript 代码，而不是把 cookie 显示给用户。
+同 CSS 注入联系在一起，攻击者甚至使得元素填满整个页面，这样用户鼠标在页面
+上的任何地方都会触发攻击。</p>
+</div>
+<div class="section" id="csrf">
+<h2>跨站请求伪造（CSRF）<a class="headerlink" href="#csrf" title="Permalink to this headline">¶</a></h2>
+<p>另一个大问题是 CSRF 。这是一个非常复杂的话题，我不会在此详细介绍，而只会
+提及 CSRF 是什么和理论上如何避免它。</p>
+<p>如果你的验证信息存储在 cookie 中，你有显式的状态管理。“已登入”状态由一个
+cookie 控制，并且这个 cookie 在每个页面的请求中都会发送。不幸的是，在第三
+方站点触发的请求中也会发送这个 cookie 。如果你不注意这点，一些人可能会通过
+社会工程学来诱导你应用的用户在他们不知道的情况下做一些蠢事。</p>
+<p>比如你有一个指定的 URL ，当你发送 <cite>POST</cite> 请求时会删除一个用户的资料（比如
+<cite>http://example.com/user/delete</cite> 。如果一个攻击者现在创造一个页面来用
+JavaScript 发送这个 post 请求，他们只是诱骗一些用户加载那个页面，而他们
+的资料最终会被删除。</p>
+<p>想象你在运行 Facebook ，有数以百万计的并发用户，并且某人放出一些小猫图片
+的链接。当用户访问那个页面欣赏毛茸茸的猫的图片时，他们的资料就被删除。</p>
+<p>你怎样才能阻止这呢？基本上，对于每个修改服务器上内容的请求，你应该使用
+一次性令牌，并存储在 cookie 里， <strong>并且</strong> 在发送表单数据的同时附上它。
+在服务器再次接收数据之后，你要比较两个令牌，并确保它们相等。</p>
+<p>为什么 Flask 没有为你这么做？理想情况下，这应该是表单验证框架做的事，而
+Flask 中并不存在表单验证。</p>
+</div>
+<div class="section" id="json">
+<span id="json-security"></span><h2>JSON 安全<a class="headerlink" href="#json" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-ecmascript-5 admonition">
+<p class="first admonition-title">ECMAScript 5 的变更</p>
+<p class="last">从 ECMAScript 5 开始，常量的行为变化了。现在它们不由 <code class="docutils literal"><span class="pre">Array</span></code> 或其它
+的构造函数构造，而是由 <code class="docutils literal"><span class="pre">Array</span></code> 的内建构造函数构造，关闭了这个特殊的
+攻击媒介。</p>
+</div>
+<p>JSON 本身是一种高级序列化格式，所以它几乎没有什么可以导致安全问题，对吗？
+你不能声明导致问题的递归结构，唯一可能导致破坏的就是在接受者角度上，非常
+大的响应可以导致某种意义上的拒绝服务攻击。</p>
+<p>然而有一个陷阱。由于浏览器在 CSRF 问题上工作的方式， JSON 也不能幸免。幸运
+的是， JavaScript 规范中有一个怪异的部分可以用于简易地解决这一问题。 Flask
+通过避免你做危险的事情上为你解决了一些。不幸的是，只有在
+<code class="xref py py-func docutils literal"><span class="pre">jsonify()</span></code> 中有这样的保护，所以如果你用其它方法生成 JSON 仍然
+有风险。</p>
+<p>那么，问题是什么，并且怎样避免？问题是 JSON 中数组是一等公民。想象你在
+一个 JSON 请求中发送下面的数据。比如 JavaScript 实现的用户界面的一部分，
+导出你所有朋友的名字和邮件地址。并不罕见:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="o">:</span> <span class="s2">&quot;admin&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;admin@localhost&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>这当然只在你登入的时候，且只为你这么做。而且，它对一个特定 URL 上的所有
+<cite>GET</cite> 请求都这么做。比如请求的 URL 是
+<code class="docutils literal"><span class="pre">http://example.com/api/get_friends.json</span></code></p>
+<p>那么如果一个聪明的黑客把这个嵌入到他自己的网站上，并用社会工程学使得受害
+者访问他的网站，会发生什么:</p>
+<div class="highlight-html"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">text/javascript</span><span class="p">&gt;</span>
+<span class="kd">var</span> <span class="nx">captured</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">oldArray</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">;</span>
+<span class="kd">function</span> <span class="nb">Array</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="k">this</span><span class="p">,</span> <span class="nx">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">capture</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">__defineSetter__</span><span class="p">(</span><span class="nx">id</span><span class="o">++</span><span class="p">,</span> <span class="nx">capture</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+      <span class="nx">captured</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+  <span class="p">};</span>
+  <span class="nx">capture</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">text/javascript</span>
+  <span class="na">src</span><span class="o">=</span><span class="s">http://example.com/api/get_friends.json</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">text/javascript</span><span class="p">&gt;</span>
+<span class="nb">Array</span> <span class="o">=</span> <span class="nx">oldArray</span><span class="p">;</span>
+<span class="c1">// now we have all the data in the captured array.</span>
+<span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</pre></div>
+</div>
+<p>如果你懂得一些 JavaScript 的内部工作机制，你会知道给构造函数打补丁和为
+setter 注册回调是可能的。一个攻击者可以利用这点（像上面一样上）来获取
+所有你导出的 JSON 文件中的数据。如果在 script 标签中定义了内容类型是
+<code class="docutils literal"><span class="pre">text/javascript</span></code> ，浏览器会完全忽略 <code class="docutils literal"><span class="pre">application/json</span></code> 的
+mimetype ，而把其作为 JavaScript 来求值。因为顶层数组元素是允许的（虽然
+没用）且我们在自己的构造函数中挂钩，在这个页面载入后， JSON 响应中的数据
+会出现在 <cite>captured</cite> 数组中。</p>
+<p>因为在 JavaScript 中对象字面量（ <code class="docutils literal"><span class="pre">{...}</span></code> ）处于顶层是一个语法错误，攻
+击者可能不只是用 script 标签加载数据并请求一个外部的 URL 。所以， Flask
+所做的只是在使用 <code class="xref py py-func docutils literal"><span class="pre">jsonify()</span></code> 时允许对象作为顶层元素。确保使用
+普通的 JSON 生成函数时也这么做。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">安全注意事项</a><ul>
+<li><a class="reference internal" href="#xss">跨站脚本攻击（XSS）</a></li>
+<li><a class="reference internal" href="#csrf">跨站请求伪造（CSRF）</a></li>
+<li><a class="reference internal" href="#json">JSON 安全</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="htmlfaq.html" title="previous chapter">HTML/XHTML 常见问题</a></li>
+      <li>Next: <a href="unicode.html" title="next chapter">Flask 中的 Unicode</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/security.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/security.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,162 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>在 Shell 中使用 Flask &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Flask 范例" href="patterns/index.html" />
+    <link rel="prev" title="Flask 扩展" href="extensions.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shell-flask">
+<span id="shell"></span><h1>在 Shell 中使用 Flask<a class="headerlink" href="#shell-flask" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.3.</span></p>
+</div>
+<p>Python 拥有的交互式 Shell 是人人都喜欢它的一个重要原因。交互式 Shell 允许你实时的运行 Python 命令并且立即得到反馈结果。Flask 本身并未内置一个交互式 Shell ，因为它并不需要任何前台的特殊设置，仅仅导入您的应用 然后开始探索和使用即可。</p>
+<p>有些辅助工具可以让你在 shell 中更舒服。交互式控制台回话的一个重要问题是，您并不是像在浏览器当中那样激发一个请求，因此 <a class="reference internal" href="api.html#flask.g" title="flask.g"><code class="xref py py-data docutils literal"><span class="pre">g</span></code></a> 和 <a class="reference internal" href="api.html#flask.request" title="flask.request"><code class="xref py py-data docutils literal"><span class="pre">request</span></code></a> 以及其他的一些函数不能使用。然而您想要测试的代码也许依赖他们， 那么让我们瞧瞧该如何解决这个问题。</p>
+<p>这就是该那些辅助函数登场的时候了。然而应当说明的是， 这些函数并非仅仅为在交互式 Shell 里使用而编写的，也可以用于单元测试或者其他需要模拟请求上下文的情景。</p>
+<p>一般来说，在阅读本章节之前还是建议大家先阅读 <a class="reference internal" href="reqcontext.html#request-context"><span class="std std-ref">请求上下文</span></a> 相关章节。</p>
+<div class="section" id="id1">
+<h2>创建一个请求上下文<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>从 Shell 创建一个合适的上下文，最简单的方法是使用 <a class="reference internal" href="api.html#flask.Flask.test_request_context" title="flask.Flask.test_request_context"><code class="xref py py-attr docutils literal"><span class="pre">test_request_context</span></code></a> 方法，
+此方法会创建一个 <a class="reference internal" href="api.html#flask.ctx.RequestContext" title="flask.ctx.RequestContext"><code class="xref py py-class docutils literal"><span class="pre">RequestContext</span></code></a> 类:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">test_request_context</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>一般来说，您可以使用 <cite>with</cite> 声明来激活这个请求对象，但是在终端中，调用 <a class="reference internal" href="api.html#flask.ctx.RequestContext.push" title="flask.ctx.RequestContext.push"><code class="xref py py-meth docutils literal"><span class="pre">push()</span></code></a> 方法和 <a class="reference internal" href="api.html#flask.ctx.RequestContext.pop" title="flask.ctx.RequestContext.pop"><code class="xref py py-meth docutils literal"><span class="pre">pop()</span></code></a> 方法会更简单:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">push</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>从这里往后，您就可以使用这个请求对象直到您调用 <cite>pop</cite> 方法为止:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>在请求之前/之后使用 shell<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>仅仅创建一个请求上下文，您仍然不能运行请求发送前通常会运行的代码。如果您在将连接数据库的任务分配给发送请求前的函数调用，或者在当前用户并没有被储存在 <a class="reference internal" href="api.html#flask.g" title="flask.g"><code class="xref py py-data docutils literal"><span class="pre">g</span></code></a> 对象里等等情况下，您可能无法访问到数据库。</p>
+<p>您可以很容易的自己完成这件事，仅仅手动调用 <a class="reference internal" href="api.html#flask.Flask.preprocess_request" title="flask.Flask.preprocess_request"><code class="xref py py-meth docutils literal"><span class="pre">preprocess_request()</span></code></a> 函数即可:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">test_request_context</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">push</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">preprocess_request</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>请注意，<a class="reference internal" href="api.html#flask.Flask.preprocess_request" title="flask.Flask.preprocess_request"><code class="xref py py-meth docutils literal"><span class="pre">preprocess_request()</span></code></a> 函数可能会返回一个响应对象。这时忽略它就好了。</p>
+<p>要关闭一个请求，您需要在请求后的调用函数(由 <a class="reference internal" href="api.html#flask.Flask.process_response" title="flask.Flask.process_response"><code class="xref py py-meth docutils literal"><span class="pre">process_response()</span></code></a> 函数激发)运行之前耍一些小小的把戏:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">process_response</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">response_class</span><span class="p">())</span>
+<span class="go">&lt;Response 0 bytes [200 OK]&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>被注册为 <a class="reference internal" href="api.html#flask.Flask.teardown_request" title="flask.Flask.teardown_request"><code class="xref py py-meth docutils literal"><span class="pre">teardown_request()</span></code></a> 的函数将会在上下文环境改变之后自动执行。所以这是用来销毁请求上下文(如数据库连接等)资源的最佳地点.</p>
+</div>
+<div class="section" id="id3">
+<h2>进一步提升 Shell 体验<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>如果你喜欢在 shell 中的感觉，那么你可以创建一个导入有关东西的模块，在模块中还可以定义一些辅助方法，如初始化数据库或者删除表等等</p>
+<p>把他们放到一个模块里(比如 <cite>shelltools</cite> 然后在 Shell 中导入它)：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">shelltools</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">在 Shell 中使用 Flask</a><ul>
+<li><a class="reference internal" href="#id1">创建一个请求上下文</a></li>
+<li><a class="reference internal" href="#id2">在请求之前/之后使用 shell</a></li>
+<li><a class="reference internal" href="#id3">进一步提升 Shell 体验</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="extensions.html" title="previous chapter">Flask 扩展</a></li>
+      <li>Next: <a href="patterns/index.html" title="next chapter">Flask 范例</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/shell.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/shell.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

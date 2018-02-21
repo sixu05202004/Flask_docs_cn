@@ -1,0 +1,186 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>基于后台作业的 Celery &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="部署方式" href="../deploying/index.html" />
+    <link rel="prev" title="请求内容校验" href="requestchecksum.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="celery">
+<h1>基于后台作业的 Celery<a class="headerlink" href="#celery" title="Permalink to this headline">¶</a></h1>
+<p>Celery 是一个异步任务队列/基于分布式消息传递的作业队列，它用 Python 编写。曾经整合进 Flask 但是由于
+Celery 3版本的内部重构后整合变得没有必要。本指南用于填补如何在 Flask 中使用 Celery 的空白并且假设你已经
+阅读了官方文档 <a class="reference external" href="http://docs.celeryproject.org/en/master/getting-started/first-steps-with-celery.html">First Steps with Celery</a> 。</p>
+<div class="section" id="id1">
+<h2>安装 Celery<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Celery是在 Python Package Index (PyPI) 上，因此它能够用标准的 Python 工具像 <code class="docutils literal"><span class="pre">pip</span></code> 或者 <code class="docutils literal"><span class="pre">easy_install</span></code> 来安装:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install celery
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>配置 Celery<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>你首先需要的事情就是一个 Celery 示例，这就是所谓的celery应用。它跟 Flask 中的 <a class="reference internal" href="../api.html#flask.Flask" title="flask.Flask"><code class="xref py py-class docutils literal"><span class="pre">Flask</span></code></a> 对象
+有着异曲同工之妙，不过只为 Celery。因此这个实例作为你想要在 Celery 中所做的一切的入口，像常见任务以及管理 workers，
+它必须跟其他模块一样导入。</p>
+<p>例如你可以把它放在 <code class="docutils literal"><span class="pre">tasks</span></code> 模块。然而你可以不需要任何配置在 Flask 中使用 Celery ，通过继承任务以及为Flask应用上下文
+增加支持，使用Flask配置它会变得智能。</p>
+<p>这就是所有在 Flask 中整合 Celery 必要步骤:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery</span> <span class="k">import</span> <span class="n">Celery</span>
+
+<span class="k">def</span> <span class="nf">make_celery</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
+    <span class="n">celery</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">import_name</span><span class="p">,</span> <span class="n">broker</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;CELERY_BROKER_URL&#39;</span><span class="p">])</span>
+    <span class="n">celery</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">TaskBase</span> <span class="o">=</span> <span class="n">celery</span><span class="o">.</span><span class="n">Task</span>
+    <span class="k">class</span> <span class="nc">ContextTask</span><span class="p">(</span><span class="n">TaskBase</span><span class="p">):</span>
+        <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">TaskBase</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">celery</span><span class="o">.</span><span class="n">Task</span> <span class="o">=</span> <span class="n">ContextTask</span>
+    <span class="k">return</span> <span class="n">celery</span>
+</pre></div>
+</div>
+<p>函数创建一个新的 Celery 对象，用应用配置中的 broker 来配置 Celery 对象，从Flask中的配置来
+配置剩下的 Celery 配置。</p>
+</div>
+<div class="section" id="id3">
+<h2>小型例子<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>使用上面的内容，这就是在Flask中使用 Celery 的小型例子:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+    <span class="n">CELERY_BROKER_URL</span><span class="o">=</span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
+    <span class="n">CELERY_RESULT_BACKEND</span><span class="o">=</span><span class="s1">&#39;redis://localhost:6379&#39;</span>
+<span class="p">)</span>
+<span class="n">celery</span> <span class="o">=</span> <span class="n">make_celery</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+
+<span class="nd">@celery</span><span class="o">.</span><span class="n">task</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">add_together</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</pre></div>
+</div>
+<p>这个任务现在能够后台运行：</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">add_together</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+<span class="go">65</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="celery-worker">
+<h2>运行 Celery Worker<a class="headerlink" href="#celery-worker" title="Permalink to this headline">¶</a></h2>
+<p>现在如果你已经执行上面的代码，你也许会十分失望的，因为你的 <code class="docutils literal"><span class="pre">.wait()</span></code> 实际上没有任何返回。
+这是因为你也必须运行 celery 。你可以通过运行 celery 作为一个 worker 来实现:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ celery -A your_application worker
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">your_application</span></code> 字符串必须指向创建 <cite>celery</cite> 对象的应用包或者模块。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">基于后台作业的 Celery</a><ul>
+<li><a class="reference internal" href="#id1">安装 Celery</a></li>
+<li><a class="reference internal" href="#id2">配置 Celery</a></li>
+<li><a class="reference internal" href="#id3">小型例子</a></li>
+<li><a class="reference internal" href="#celery-worker">运行 Celery Worker</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="requestchecksum.html" title="previous chapter">请求内容校验</a></li>
+      <li>Next: <a href="../deploying/index.html" title="next chapter">部署方式</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/celery.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/celery.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

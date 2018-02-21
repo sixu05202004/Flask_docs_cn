@@ -1,0 +1,160 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Step 2: 应用设置代码 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Step 3: 创建数据库" href="dbinit.html" />
+    <link rel="prev" title="Step 1: 数据库模式" href="schema.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="step-2">
+<span id="tutorial-setup"></span><h1>Step 2: 应用设置代码<a class="headerlink" href="#step-2" title="Permalink to this headline">¶</a></h1>
+<p>现在我们已经有了数据库模式了，我们可以创建应用的模块了。让我们称为 <cite>flaskr.py</cite> ，并
+放置于 <cite>flaskr</cite> 文件夹中。对于初学者来说，我们会添加所有需要的导入像配置的章节中一样。对于小应用，直接把配置放在主模块里，正如我们现在要做的一样，是可行的。然而一个更干净的解决方案就是单独创建 <cite>.ini</cite> 或者 <cite>.py</cite> 文件接着加载或者导入里面的值。</p>
+<p>在 <cite>flaskr.py</cite> 中:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># all the imports</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> \
+     <span class="n">abort</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">flash</span>
+
+<span class="c1"># configuration</span>
+<span class="n">DATABASE</span> <span class="o">=</span> <span class="s1">&#39;/tmp/flaskr.db&#39;</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;development key&#39;</span>
+<span class="n">USERNAME</span> <span class="o">=</span> <span class="s1">&#39;admin&#39;</span>
+<span class="n">PASSWORD</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+</pre></div>
+</div>
+<p>下一步我们能够创建真正的应用，接着用同一文件(在 <cite>flaskr.py</cite> 中)中的配置初始化:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create our little application :)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../api.html#flask.Config.from_object" title="flask.Config.from_object"><code class="xref py py-meth docutils literal"><span class="pre">from_object()</span></code></a> 将会寻找给定的对象(如果它是一个字符串，则会导入它)，
+搜寻里面定义的全部大写的变量。在我们的这种情况中，配置文件就是我们上面写的几行代码。
+你也可以将他们分别存储到多个文件。</p>
+<p>通常，从配置文件中加载配置是一个好的主意。这是 <a class="reference internal" href="../api.html#flask.Config.from_envvar" title="flask.Config.from_envvar"><code class="xref py py-meth docutils literal"><span class="pre">from_envvar()</span></code></a> 所做的，
+用它替换上面的 <a class="reference internal" href="../api.html#flask.Config.from_object" title="flask.Config.from_object"><code class="xref py py-meth docutils literal"><span class="pre">from_object()</span></code></a></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_envvar</span><span class="p">(</span><span class="s1">&#39;FLASKR_SETTINGS&#39;</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这种方法我们可以设置一个名为 <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">FLASKR_SETTINGS</span></code> 环境变量来设定一个配置文件载入后是否覆盖默认值。
+静默开关告诉 Flask 不去关心这个环境变量键值是否存在。</p>
+<p><cite>secret_key</cite> 是需要为了保持客户端的会话安全。明智地选择该键，使得它难以猜测，尽可能复杂。
+调试标志启用或禁用交互式调试。<em>决不让调试模式在生产系统中启动</em>，因为它将允许用户在服务器上执行代码！</p>
+<p>我们还添加了一个轻松地连接到指定数据库的方法，这个方法用于在请求时打开一个连接，并且在交互式 Python shell  和脚本中也能使用。这对以后很方便。</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">connect_db</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;DATABASE&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>最后如果我们想要把那个文件当做独立应用来运行，我们只需在服务器启动文件的末尾添加这一行:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>如此我们便可以顺利开始运行这个应用，使用如下命令:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">flaskr</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>你将会看到一个信息，信息提示你服务器启动的地址，这个地址你能够访问到的。</p>
+<p>当你在浏览器中访问服务器获得一个404页面无法找到的错误时，是因为我们还没有任何视图。我们之后再来关注这些。首先我们应该让数据库工作起来。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">外部可见的服务器</p>
+<p class="last">想要你的服务器公开可见吗？更多的信息请查阅 <a class="reference internal" href="../quickstart.html#public-server"><span class="std std-ref">externally visible server</span></a> 。</p>
+</div>
+<p>继续浏览 <a class="reference internal" href="dbinit.html#tutorial-dbinit"><span class="std std-ref">Step 3: 创建数据库</span></a> 。</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">教程</a><ul>
+      <li>Previous: <a href="schema.html" title="previous chapter">Step 1: 数据库模式</a></li>
+      <li>Next: <a href="dbinit.html" title="next chapter">Step 3: 创建数据库</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorial/setup.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/tutorial/setup.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

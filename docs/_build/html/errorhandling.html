@@ -1,0 +1,348 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>记录应用程序错误 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="配置处理" href="config.html" />
+    <link rel="prev" title="测试 Flask 应用" href="testing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="application-errors">
+<span id="id1"></span><h1>记录应用程序错误<a class="headerlink" href="#application-errors" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.3.</span></p>
+</div>
+<p>应用程序会失败，服务器会失败。迟早你会看到在生产模式中的一个异常。即使你的代码是 100% 正确，
+你仍然将会不时地看到异常。为什么？因为涉及的所有一切都会出现异常。这里是一些完美代码会导致服务器错误的情况：</p>
+<ul class="simple">
+<li>客户端提前中断请求，应用仍在读取请求传入的数据。</li>
+<li>数据库服务器超载，无法处理查询。</li>
+<li>一个文件系统已满。</li>
+<li>一个硬件崩溃。</li>
+<li>后端服务器超载。</li>
+<li>您正在使用的一个库中的程序错误。</li>
+<li>到另一个系统的服务器的网络连接失败。</li>
+</ul>
+<p>而这仅仅是你可能会面临的问题一个小样本。因此我们该如何处理这类的问题？默认情况下，
+如果你的应用程序在生产模式下运行的话，Flask 会显示一个非常简单的页面并记录异常到 <a class="reference internal" href="api.html#flask.Flask.logger" title="flask.Flask.logger"><code class="xref py py-attr docutils literal"><span class="pre">logger</span></code></a>。</p>
+<p>但是你有更多的可做的，我们将介绍一些更好的用来处理错误的设置。</p>
+<div class="section" id="id2">
+<h2>错误邮件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>如果你的应用在生产模式下运行（会在你的服务器上做），默认情况下，你不会看见任何日志消息。为什么会这样？
+Flask 试图成为一个零-配置框架。如果没有配置日志会被放在哪里了？猜测不是一个好主意因为可能性太多，
+它猜测的位置可能不是一个用户有权限创建日志文件的地方。同样，对于大部分小型应用没有人会去看日志。</p>
+<p>事实上，我现在向你保证，如果你给应用程序错误配置一个日志文件，你将永远不会看见它，除非在调试问题时用户向你报告。
+你需要的应是异常发生时的邮件，然后你会得到一个警报，并做些什么。</p>
+<p>Flask 使用 Python 内置的日志系统，它实际上可以发送错误邮件，这可能是你想要什么。这里是如何配置 Flask 日志向你发送异常邮件:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ADMINS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;yourname@example.com&#39;</span><span class="p">]</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">logging</span>
+    <span class="kn">from</span> <span class="nn">logging.handlers</span> <span class="k">import</span> <span class="n">SMTPHandler</span>
+    <span class="n">mail_handler</span> <span class="o">=</span> <span class="n">SMTPHandler</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;server-error@example.com&#39;</span><span class="p">,</span>
+                               <span class="n">ADMINS</span><span class="p">,</span> <span class="s1">&#39;YourApplication Failed&#39;</span><span class="p">)</span>
+    <span class="n">mail_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">mail_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>那么刚刚发生了什么了？我们创建一个新的 <a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.handlers.SMTPHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">SMTPHandler</span></code></a> ，它将在监听 <code class="docutils literal"><span class="pre">127.0.0.1</span></code>
+的邮件服务器上以发件人 <em>server-error&#64;example.com</em> 以及主题 “YourApplication Failed” 向所有的 <cite>ADMINS</cite>  发送邮件。
+如果你的邮件服务器需要认证的话，这些功能可能提供。对此功能请查阅文档 <a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.handlers.SMTPHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">SMTPHandler</span></code></a> 。</p>
+<p>我们同样告诉处理程序只发送错误以及更重要的信息。因为我们当然不希望收到关于一些警告或者其它一些可能发生在请求处理的日志的邮件。</p>
+<p>在生产模式上运行之前，请查阅 <a class="reference internal" href="#logformat"><span class="std std-ref">控制日志格式</span></a> 把更多的信息加入到错误邮件中。这会让你少走弯路。</p>
+</div>
+<div class="section" id="id3">
+<h2>记录到一个文件中<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>即使你能收到邮件，也可能希望记录警告。当调试问题的时候，收集更多的信息是个好主意。
+请注意 Flask 自身核心系统是不会发出任何警告的，因此在不寻常的事情发生时发出警告就是你的责任。</p>
+<p>在日志系统的框架外提供了一些处理程序，但它们对记录基本错误并不是都有用。最让人感兴趣的可能是下面的几个：</p>
+<ul class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.FileHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">FileHandler</span></code></a> - 在文件系统上记录信息。</li>
+<li><dl class="first docutils">
+<dt><a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.handlers.RotatingFileHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">RotatingFileHandler</span></code></a> - 在文件系统上记录信息到一个文件上，</dt>
+<dd>达到一定数量的消息后会切割。</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.handlers.NTEventLogHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">NTEventLogHandler</span></code></a> - 记录到 Windows 系统中的系 统事件日志。</dt>
+<dd>如果你在 Windows 上做开发，这就是你想要用的。</dd>
+</dl>
+</li>
+<li><a class="reference external" href="https://docs.python.org/3/library/logging.handlers.html#logging.handlers.SysLogHandler" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">SysLogHandler</span></code></a> - 发送日志到 UNIX 系统日志。</li>
+</ul>
+<p>当你选择了日志处理程序，像前面对 SMTP 处理程序做的那样，只要确保使用一个低级的设置（我推荐 <cite>WARNING</cite> ）:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="ow">not</span> <span class="n">app</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">logging</span>
+    <span class="kn">from</span> <span class="nn">themodule</span> <span class="k">import</span> <span class="n">TheHandlerYouWant</span>
+    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">TheHandlerYouWant</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="logformat">
+<span id="id4"></span><h2>控制日志格式<a class="headerlink" href="#logformat" title="Permalink to this headline">¶</a></h2>
+<p>默认情况下的处理程序将只写消息字符串到一个文件，或向您发送该消息作为邮件。一个日志记 录应存储更多的信息，这使得配置你的日志记录器包含那些信息很重要，如此你会对错误发生的原因，
+还有更重要的：错误在哪发生，有更好的了解。</p>
+<p>格式可以从一个格式化字符串实例化。需要注意的是的 traceback 信息被自动地加入到日志条目，
+你不需要在日志格式的格式化字符串中去做。</p>
+<p>这些一些配置的例子：</p>
+<div class="section" id="id5">
+<h3>邮件<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">logging</span> <span class="k">import</span> <span class="n">Formatter</span>
+<span class="n">mail_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">Message type:       </span><span class="si">%(levelname)s</span><span class="s1"></span>
+<span class="s1">Location:           </span><span class="si">%(pathname)s</span><span class="s1">:</span><span class="si">%(lineno)d</span><span class="s1"></span>
+<span class="s1">Module:             </span><span class="si">%(module)s</span><span class="s1"></span>
+<span class="s1">Function:           </span><span class="si">%(funcName)s</span><span class="s1"></span>
+<span class="s1">Time:               </span><span class="si">%(asctime)s</span><span class="s1"></span>
+
+<span class="s1">Message:</span>
+
+<span class="si">%(message)s</span><span class="s1"></span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>文件记录<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">logging</span> <span class="k">import</span> <span class="n">Formatter</span>
+<span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">Formatter</span><span class="p">(</span>
+    <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1"> &#39;</span>
+    <span class="s1">&#39;[in </span><span class="si">%(pathname)s</span><span class="s1">:</span><span class="si">%(lineno)d</span><span class="s1">]&#39;</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h3>复杂的日志格式<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>这里是一个有用的格式化字符的格式变量列表。注意这个列表并不完整，完整的列表翻阅 <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">logging</span></code></a> 包的官方文档。</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">格式</th>
+<th class="head">描述</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">%(levelname)s</span></code></td>
+<td>消息文本的日志记录级别
+(<code class="docutils literal"><span class="pre">'DEBUG'</span></code>, <code class="docutils literal"><span class="pre">'INFO'</span></code>, <code class="docutils literal"><span class="pre">'WARNING'</span></code>,
+<code class="docutils literal"><span class="pre">'ERROR'</span></code>, <code class="docutils literal"><span class="pre">'CRITICAL'</span></code>)。</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">%(pathname)s</span></code></td>
+<td>发起日志调用（如果可用）的源文件的完整路径名。</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">%(filename)s</span></code></td>
+<td>路径中的文件名部分 。</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">%(module)s</span></code></td>
+<td>模块（文件名的名称部分）。</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">%(funcName)s</span></code></td>
+<td>包含日志调用的函数名 。</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">%(lineno)d</span></code></td>
+<td>日志记录调用所在的源文件行的行号（如果可用）。</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">%(asctime)s</span></code></td>
+<td>LogRecord创建时可读的时间。默认的形式是
+<code class="docutils literal"><span class="pre">&quot;2003-07-08</span> <span class="pre">16:49:45,896&quot;</span></code>
+(逗号后的数字时间的毫秒部分)。通过继承格式并且重载
+<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Formatter.formatTime" title="(in Python v3.6)"><code class="xref py py-meth docutils literal"><span class="pre">formatTime()</span></code></a> 方法改变。</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">%(message)s</span></code></td>
+<td>记录的消息，记为 <code class="docutils literal"><span class="pre">msg</span> <span class="pre">%</span> <span class="pre">args</span></code> 。</td>
+</tr>
+</tbody>
+</table>
+<p>如果你想深度定制日志格式，你可以继承格式。格式有三个需要关注的方法：</p>
+<dl class="docutils">
+<dt><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Formatter.format" title="(in Python v3.6)"><code class="xref py py-meth docutils literal"><span class="pre">format()</span></code></a>:</dt>
+<dd>处理实际格式。
+传入一个 <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.LogRecord" title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span class="pre">LogRecord</span></code></a> 对象且必须返回格式化的字符串。</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Formatter.formatTime" title="(in Python v3.6)"><code class="xref py py-meth docutils literal"><span class="pre">formatTime()</span></code></a>:</dt>
+<dd>为格式化 <cite>asctime</cite> 而调用。
+如果你想要一个不同的时间格式你可以重载这个方法。</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Formatter.formatException" title="(in Python v3.6)"><code class="xref py py-meth docutils literal"><span class="pre">formatException()</span></code></a></dt>
+<dd>为格式化异常而调用。传入一个 <code class="xref py py-attr docutils literal"><span class="pre">exc_info</span></code> 元组且必须返回一个字符串。
+默认的是足够好，你不必重载它了。</dd>
+</dl>
+<p>更多信息，请查阅官方文档。</p>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>其它的库<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>目前为止我们只配置了应用程序本身建立的日志记录器。同样其他库也会自己记录日志。比如，
+SQLAlchemy 在自己核心代码中大量使用了日志。尽管在 <a class="reference external" href="https://docs.python.org/3/library/logging.html#module-logging" title="(in Python v3.6)"><code class="xref py py-mod docutils literal"><span class="pre">logging</span></code></a> 包中有一种方式一次性配置所有日志，
+我不建议使用它。可能存在一种情况，当你想 要在同一个 Python 解释器中并排运行多个独立的应用时，
+则不可能对它们的日志记录器做不同的设置。</p>
+<p>作为替代，我推荐你找出你有兴趣的日志记录器，用 <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.getLogger" title="(in Python v3.6)"><code class="xref py py-func docutils literal"><span class="pre">getLogger()</span></code></a> 函数来获取日志记录器，并且遍历它们来附加处理程序:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">logging</span> <span class="k">import</span> <span class="n">getLogger</span>
+<span class="n">loggers</span> <span class="o">=</span> <span class="p">[</span><span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="p">,</span> <span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;sqlalchemy&#39;</span><span class="p">),</span>
+           <span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;otherlibrary&#39;</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">logger</span> <span class="ow">in</span> <span class="n">loggers</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">mail_handler</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id9">
+<h1>调试应用程序错误<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h1>
+<p>对于生产应用，按照 <a class="reference internal" href="#application-errors"><span class="std std-ref">记录应用程序错误</span></a> 来配置应用程序日志和通知。
+这个章节讲述了调试部署配置和深入一个功能强大的 Python 调试器的要点。</p>
+<div class="section" id="id10">
+<h2>有疑问时，手动运行<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>在配置你的应用到生产时遇到了问题？如果你拥有主机的 shell 权限，验证你是否可以在部署环境中手动用 shell 运行你的应用。
+确保在同一用户账户下运行配置好的部署来解决权限问题。你可以设置 debug=True 来使用 Flask 内置的开发服务器，这在 捕获配置问题的时候非常有效，但是 <strong>请确保在可控环境下临时地这么做</strong>。 不要在生产环境中使用 debug=True 运行。</p>
+</div>
+<div class="section" id="working-with-debuggers">
+<span id="id11"></span><h2>使用调试器<a class="headerlink" href="#working-with-debuggers" title="Permalink to this headline">¶</a></h2>
+<p>为了能够更加深入，可能会跟踪代码的执行，Flask 提供了一个框架外的调试器(请看 <a class="reference internal" href="quickstart.html#debug-mode"><span class="std std-ref">调试模式</span></a>)。
+如果你想用其它的 Python 调试器，请注意相互的调试器接口。为了使用你喜爱的调试器你必须设置一些选项：</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">debug</span></code>        - 是否开启调试模式并捕获异常</li>
+<li><code class="docutils literal"><span class="pre">use_debugger</span></code> - 是否使用内部的 Flask 调试器</li>
+<li><code class="docutils literal"><span class="pre">use_reloader</span></code> - 是否在异常时重新载入并创建子进程</li>
+</ul>
+<p><code class="docutils literal"><span class="pre">debug</span></code> 必须为 True (即，异常必须捕获异常)来允许其它的两个选项设置为任何值。</p>
+<p>如果你使用 Aptana/Eclipse 调试，你将需要设置 <code class="docutils literal"><span class="pre">use_debugger</span></code> 和 <code class="docutils literal"><span class="pre">use_reloader</span></code> 为False。</p>
+<p>一个可能有用的配置模式就是在你的 config.yaml 中设置为如下(当然，自行更改为适用你应用的):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">FLASK</span><span class="p">:</span>
+    <span class="n">DEBUG</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="n">DEBUG_WITH_APTANA</span><span class="p">:</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>接着在应用程序的入口处，你可以写成这样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># To allow aptana to receive errors, set use_debugger=False</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;config.yaml&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span> <span class="n">use_debugger</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Disable Flask&#39;s debugger if external debugger is requested</span>
+        <span class="n">use_debugger</span> <span class="o">=</span> <span class="ow">not</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DEBUG_WITH_APTANA&#39;</span><span class="p">))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">use_debugger</span><span class="o">=</span><span class="n">use_debugger</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
+            <span class="n">use_reloader</span><span class="o">=</span><span class="n">use_debugger</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">记录应用程序错误</a><ul>
+<li><a class="reference internal" href="#id2">错误邮件</a></li>
+<li><a class="reference internal" href="#id3">记录到一个文件中</a></li>
+<li><a class="reference internal" href="#logformat">控制日志格式</a><ul>
+<li><a class="reference internal" href="#id5">邮件</a></li>
+<li><a class="reference internal" href="#id6">文件记录</a></li>
+<li><a class="reference internal" href="#id7">复杂的日志格式</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">其它的库</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id9">调试应用程序错误</a><ul>
+<li><a class="reference internal" href="#id10">有疑问时，手动运行</a></li>
+<li><a class="reference internal" href="#working-with-debuggers">使用调试器</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="testing.html" title="previous chapter">测试 Flask 应用</a></li>
+      <li>Next: <a href="config.html" title="next chapter">配置处理</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/errorhandling.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/errorhandling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,442 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Command Line Interface &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development Server" href="server.html" />
+    <link rel="prev" title="Flask 扩展" href="extensions.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="command-line-interface">
+<span id="cli"></span><h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<p>Installing Flask installs the <code class="docutils literal"><span class="pre">flask</span></code> script, a <a class="reference external" href="http://click.pocoo.org/">Click</a> command line
+interface, in your virtualenv. Executed from the terminal, this script gives
+access to built-in, extension, and application-defined commands. The <code class="docutils literal"><span class="pre">--help</span></code>
+option will give more information about any commands and options.</p>
+<div class="section" id="application-discovery">
+<h2>Application Discovery<a class="headerlink" href="#application-discovery" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">flask</span></code> command is installed by Flask, not your application; it must be
+told where to find your application in order to use it. The <code class="docutils literal"><span class="pre">FLASK_APP</span></code>
+environment variable is used to specify how to load the application.</p>
+<p>Unix Bash (Linux, Mac, etc.):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ export FLASK_APP=hello
+$ flask run
+</pre></div>
+</div>
+<p>Windows CMD:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="nb">set</span> <span class="n">FLASK_APP</span><span class="o">=</span><span class="n">hello</span>
+<span class="o">&gt;</span> <span class="n">flask</span> <span class="n">run</span>
+</pre></div>
+</div>
+<p>Windows PowerShell:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&gt; $env:FLASK_APP = &quot;hello&quot;
+&gt; flask run
+</pre></div>
+</div>
+<p>While <code class="docutils literal"><span class="pre">FLASK_APP</span></code> supports a variety of options for specifying your
+application, most use cases should be simple. Here are the typical values:</p>
+<dl class="docutils">
+<dt>(nothing)</dt>
+<dd>The file <code class="file docutils literal"><span class="pre">wsgi.py</span></code> is imported, automatically detecting an app
+(<code class="docutils literal"><span class="pre">app</span></code>). This provides an easy way to create an app from a factory with
+extra arguments.</dd>
+<dt><code class="docutils literal"><span class="pre">FLASK_APP=hello</span></code></dt>
+<dd>The name is imported, automatically detecting an app (<code class="docutils literal"><span class="pre">app</span></code>) or factory
+(<code class="docutils literal"><span class="pre">create_app</span></code>).</dd>
+</dl>
+<hr class="docutils" />
+<p><code class="docutils literal"><span class="pre">FLASK_APP</span></code> has three parts: an optional path that sets the current working
+directory, a Python file or dotted import path, and an optional variable
+name of the instance or factory. If the name is a factory, it can optionally
+be followed by arguments in parentheses. The following values demonstrate these
+parts:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">FLASK_APP=src/hello</span></code></dt>
+<dd>Sets the current working directory to <code class="docutils literal"><span class="pre">src</span></code> then imports <code class="docutils literal"><span class="pre">hello</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">FLASK_APP=hello.web</span></code></dt>
+<dd>Imports the path <code class="docutils literal"><span class="pre">hello.web</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">FLASK_APP=hello:app2</span></code></dt>
+<dd>Uses the <code class="docutils literal"><span class="pre">app2</span></code> Flask instance in <code class="docutils literal"><span class="pre">hello</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">FLASK_APP=&quot;hello:create_app('dev')&quot;</span></code></dt>
+<dd>The <code class="docutils literal"><span class="pre">create_app</span></code> factory in <code class="docutils literal"><span class="pre">hello</span></code> is called with the string <code class="docutils literal"><span class="pre">'dev'</span></code>
+as the argument.</dd>
+</dl>
+<p>If <code class="docutils literal"><span class="pre">FLASK_APP</span></code> is not set, the command will look for a file called
+<code class="file docutils literal"><span class="pre">wsgi.py</span></code> or <code class="file docutils literal"><span class="pre">app.py</span></code> and try to detect an application instance or
+factory.</p>
+<p>Within the given import, the command looks for an application instance named
+<code class="docutils literal"><span class="pre">app</span></code> or <code class="docutils literal"><span class="pre">application</span></code>, then any application instance. If no instance is
+found, the command looks for a factory function named <code class="docutils literal"><span class="pre">create_app</span></code> or
+<code class="docutils literal"><span class="pre">make_app</span></code> that returns an instance.</p>
+<p>When calling an application factory, if the factory takes an argument named
+<code class="docutils literal"><span class="pre">info</span></code>, then the <code class="xref py py-class docutils literal"><span class="pre">ScriptInfo</span></code> instance is passed as a keyword
+argument. If parentheses follow the factory name, their contents are parsed
+as Python literals and passes as arguments to the function. This means that
+strings must still be in quotes.</p>
+</div>
+<div class="section" id="run-the-development-server">
+<h2>Run the Development Server<a class="headerlink" href="#run-the-development-server" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">run</span></code> command will start the development server. It
+replaces the <a class="reference internal" href="api.html#flask.Flask.run" title="flask.Flask.run"><code class="xref py py-meth docutils literal"><span class="pre">Flask.run()</span></code></a> method in most cases.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ flask run
+ * Serving Flask app &quot;hello&quot;
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Do not use this command to run your application in production.
+Only use the development server during development. The development server
+is provided for convenience, but is not designed to be particularly secure,
+stable, or efficient. See <a class="reference internal" href="deploying/index.html#deployment"><span class="std std-ref">部署方式</span></a> for how to run in production.</p>
+</div>
+</div>
+<div class="section" id="open-a-shell">
+<h2>Open a Shell<a class="headerlink" href="#open-a-shell" title="Permalink to this headline">¶</a></h2>
+<p>To explore the data in your application, you can start an interactive Python
+shell with the <code class="xref py py-func docutils literal"><span class="pre">shell</span></code> command. An application
+context will be active, and the app instance will be imported.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ flask shell
+Python 3.6.2 (default, Jul 20 2017, 03:52:27)
+[GCC 7.1.1 20170630] on linux
+App: example
+Instance: /home/user/Projects/hello/instance
+&gt;&gt;&gt;
+</pre></div>
+</div>
+<p>Use <a class="reference internal" href="api.html#flask.Flask.shell_context_processor" title="flask.Flask.shell_context_processor"><code class="xref py py-meth docutils literal"><span class="pre">shell_context_processor()</span></code></a> to add other automatic imports.</p>
+</div>
+<div class="section" id="debug-mode">
+<h2>Debug Mode<a class="headerlink" href="#debug-mode" title="Permalink to this headline">¶</a></h2>
+<p>Set the <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">FLASK_DEBUG</span></code> environment variable to override the
+application’s <a class="reference internal" href="api.html#flask.Flask.debug" title="flask.Flask.debug"><code class="xref py py-attr docutils literal"><span class="pre">debug</span></code></a> flag. The value <code class="docutils literal"><span class="pre">1</span></code> enables it, <code class="docutils literal"><span class="pre">0</span></code>
+disables it. Forcing the debug flag on also enables the debugger and reloader
+when running the development server.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ FLASK_DEBUG=1 flask run
+ * Serving Flask app &quot;hello&quot;
+ * Forcing debug mode on
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Restarting with inotify reloader
+ * Debugger is active!
+ * Debugger PIN: 223-456-919
+</pre></div>
+</div>
+</div>
+<div class="section" id="environment-variables-from-dotenv">
+<span id="dotenv"></span><h2>Environment Variables From dotenv<a class="headerlink" href="#environment-variables-from-dotenv" title="Permalink to this headline">¶</a></h2>
+<p>Rather than setting <code class="docutils literal"><span class="pre">FLASK_APP</span></code> each time you open a new terminal, you can
+use Flask’s dotenv support to set environment variables automatically.</p>
+<p>If <a class="reference external" href="https://github.com/theskumar/python-dotenv#readme">python-dotenv</a> is installed, running the <code class="docutils literal"><span class="pre">flask</span></code> command will set
+environment variables defined in the files <code class="file docutils literal"><span class="pre">.env</span></code> and <code class="file docutils literal"><span class="pre">.flaskenv</span></code>.
+This can be used to avoid having to set <code class="docutils literal"><span class="pre">FLASK_APP</span></code> manually every time you
+open a new terminal, and to set configuration using environment variables
+similar to how some deployment services work.</p>
+<p>Variables set on the command line are used over those set in <code class="file docutils literal"><span class="pre">.env</span></code>,
+which are used over those set in <code class="file docutils literal"><span class="pre">.flaskenv</span></code>. <code class="file docutils literal"><span class="pre">.flaskenv</span></code> should be
+used for public variables, such as <code class="docutils literal"><span class="pre">FLASK_APP</span></code>, while <code class="file docutils literal"><span class="pre">.env</span></code> should not
+be committed to your repository so that it can set private variables.</p>
+<p>Directories are scanned upwards from the directory you call <code class="docutils literal"><span class="pre">flask</span></code>
+from to locate the files. The current working directory will be set to the
+location of the file, with the assumption that that is the top level project
+directory.</p>
+<p>The files are only loaded by the <code class="docutils literal"><span class="pre">flask</span></code> command or calling
+<a class="reference internal" href="api.html#flask.Flask.run" title="flask.Flask.run"><code class="xref py py-meth docutils literal"><span class="pre">run()</span></code></a>. If you would like to load these files when running in
+production, you should call <code class="xref py py-func docutils literal"><span class="pre">load_dotenv()</span></code> manually.</p>
+</div>
+<div class="section" id="environment-variables-from-virtualenv">
+<h2>Environment Variables From virtualenv<a class="headerlink" href="#environment-variables-from-virtualenv" title="Permalink to this headline">¶</a></h2>
+<p>If you do not want to install dotenv support, you can still set environment
+variables by adding them to the end of the virtualenv’s <code class="file docutils literal"><span class="pre">activate</span></code>
+script. Activating the virtualenv will set the variables.</p>
+<p>Unix Bash, <code class="file docutils literal"><span class="pre">venv/bin/activate</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">FLASK_APP</span><span class="o">=</span><span class="n">hello</span>
+</pre></div>
+</div>
+<p>Windows CMD, <code class="file docutils literal"><span class="pre">venvScriptsactivate.bat</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">FLASK_APP</span><span class="o">=</span><span class="n">hello</span>
+</pre></div>
+</div>
+<p>It is preferred to use dotenv support over this, since <code class="file docutils literal"><span class="pre">.flaskenv</span></code> can be
+committed to the repository so that it works automatically wherever the project
+is checked out.</p>
+</div>
+<div class="section" id="custom-commands">
+<h2>Custom Commands<a class="headerlink" href="#custom-commands" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">flask</span></code> command is implemented using <a class="reference external" href="http://click.pocoo.org/">Click</a>. See that project’s
+documentation for full information about writing commands.</p>
+<p>This example adds the command <code class="docutils literal"><span class="pre">create_user</span></code> that takes the argument
+<code class="docutils literal"><span class="pre">name</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flask</span> <span class="n">create_user</span> <span class="n">admin</span>
+</pre></div>
+</div>
+<p>This example adds the same command, but as <code class="docutils literal"><span class="pre">user</span> <span class="pre">create</span></code>, a command in a
+group. This is useful if you want to organize multiple related commands.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask.cli</span> <span class="k">import</span> <span class="n">AppGroup</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">user_cli</span> <span class="o">=</span> <span class="n">AppGroup</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">)</span>
+
+<span class="nd">@user_cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;create&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">user_cli</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flask</span> <span class="n">user</span> <span class="n">create</span> <span class="n">demo</span>
+</pre></div>
+</div>
+<div class="section" id="application-context">
+<h3>Application Context<a class="headerlink" href="#application-context" title="Permalink to this headline">¶</a></h3>
+<p>Commands added using the Flask app’s <a class="reference internal" href="api.html#flask.Flask.cli" title="flask.Flask.cli"><code class="xref py py-attr docutils literal"><span class="pre">cli</span></code></a>
+<code class="xref py py-meth docutils literal"><span class="pre">command()</span></code> decorator will be executed with an application
+context pushed, so your command and extensions have access to the app and its
+configuration. If you create a command using the Click <a class="reference external" href="http://click.pocoo.org/api/#click.command" title="(in Click v7.0-dev)"><code class="xref py py-func docutils literal"><span class="pre">command()</span></code></a>
+decorator instead of the Flask decorator, you can use
+<code class="xref py py-func docutils literal"><span class="pre">with_appcontext()</span></code> to get the same behavior.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">flask.cli</span> <span class="k">import</span> <span class="n">with_appcontext</span>
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span>
+<span class="nd">@with_appcontext</span>
+<span class="k">def</span> <span class="nf">do_work</span><span class="p">():</span>
+    <span class="o">...</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">do_work</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you’re sure a command doesn’t need the context, you can disable it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">with_appcontext</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">do_work</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="plugins">
+<h2>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h2>
+<p>Flask will automatically load commands specified in the <code class="docutils literal"><span class="pre">flask.commands</span></code>
+<a class="reference external" href="https://packaging.python.org/tutorials/distributing-packages/#entry-points">entry point</a>. This is useful for extensions that want to add commands when
+they are installed. Entry points are specified in <code class="file docutils literal"><span class="pre">setup.py</span></code></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">setuptools</span> <span class="k">import</span> <span class="n">setup</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;flask-my-extension&#39;</span><span class="p">,</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;flask.commands&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;my-command=flask_my_extension.commands:cli&#39;</span>
+        <span class="p">],</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Inside <code class="file docutils literal"><span class="pre">flask_my_extension/commands.py</span></code> you can then export a Click
+object:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">cli</span><span class="p">():</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Once that package is installed in the same virtualenv as your Flask project,
+you can run <code class="docutils literal"><span class="pre">flask</span> <span class="pre">my-command</span></code> to invoke the command.</p>
+</div>
+<div class="section" id="custom-scripts">
+<span id="id1"></span><h2>Custom Scripts<a class="headerlink" href="#custom-scripts" title="Permalink to this headline">¶</a></h2>
+<p>When you are using the app factory pattern, it may be more convenient to define
+your own Click script. Instead of using <code class="docutils literal"><span class="pre">FLASK_APP</span></code> and letting Flask load
+your application, you can create your own Click object and export it as a
+<a class="reference external" href="https://packaging.python.org/tutorials/distributing-packages/#console-scripts">console script</a> entry point.</p>
+<p>Create an instance of <code class="xref py py-class docutils literal"><span class="pre">FlaskGroup</span></code> and pass it the factory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask.cli</span> <span class="k">import</span> <span class="n">FlaskGroup</span>
+
+<span class="k">def</span> <span class="nf">create_app</span><span class="p">():</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="s1">&#39;wiki&#39;</span><span class="p">)</span>
+    <span class="c1"># other setup</span>
+    <span class="k">return</span> <span class="n">app</span>
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="bp">cls</span><span class="o">=</span><span class="n">FlaskGroup</span><span class="p">,</span> <span class="n">create_app</span><span class="o">=</span><span class="n">create_app</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">cli</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Management script for the Wiki application.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Define the entry point in <code class="file docutils literal"><span class="pre">setup.py</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">setuptools</span> <span class="k">import</span> <span class="n">setup</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;flask-my-extension&#39;</span><span class="p">,</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;console_scripts&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;wiki=wiki:cli&#39;</span>
+        <span class="p">],</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Install the application in the virtualenv in editable mode and the custom
+script is available. Note that you don’t need to set <code class="docutils literal"><span class="pre">FLASK_APP</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install -e .
+$ wiki run
+</pre></div>
+</div>
+</div>
+<div class="section" id="pycharm-integration">
+<h2>PyCharm Integration<a class="headerlink" href="#pycharm-integration" title="Permalink to this headline">¶</a></h2>
+<p>The new Flask CLI features aren’t yet fully integrated into the PyCharm IDE,
+so we have to do a few tweaks to get them working smoothly. These instructions
+should be similar for any other IDE you might want to use.</p>
+<p>In PyCharm, with your project open, click on <em>Run</em> from the menu bar and go to
+<em>Edit Configurations</em>. You’ll be greeted by a screen similar to this:</p>
+<img alt="screenshot of pycharm's run configuration settings" class="screenshot align-center" src="_static/pycharm-runconfig.png" />
+<p>There’s quite a few options to change, but once we’ve done it for one command,
+we can easily copy the entire configuration and make a single tweak to give us
+access to other commands, including any custom ones you may implement yourself.</p>
+<p>For the <em>Script</em> input (<strong>A</strong>), navigate to your project’s virtual environment.
+Within that folder, pick the <code class="docutils literal"><span class="pre">flask</span></code> executable which will reside in the
+<code class="docutils literal"><span class="pre">bin</span></code> folder, or in the <code class="docutils literal"><span class="pre">Scripts</span></code> on Windows.</p>
+<p>The <em>Script Parameter</em> field (<strong>B</strong>) is set to the CLI command you to execute.
+In this example we use <code class="docutils literal"><span class="pre">run</span></code>, which will run the development server.</p>
+<p>You can skip this next step if you’re using <a class="reference internal" href="#dotenv"><span class="std std-ref">Environment Variables From dotenv</span></a>. We need to add an
+environment variable (<strong>C</strong>) to identify our application. Click on the browse
+button and add an entry with <code class="docutils literal"><span class="pre">FLASK_APP</span></code> on the left and the name of the
+Python file or package on the right (<code class="docutils literal"><span class="pre">app.py</span></code> for example).</p>
+<p>Next we need to set the working directory (<strong>D</strong>) to be the same folder where
+our application file or package resides. PyCharm changed it to the directory
+with the <code class="docutils literal"><span class="pre">flask</span></code> executable when we selected it earlier, which is incorrect.</p>
+<p>Finally, untick the <em>PYTHONPATH</em> options (<strong>E</strong>) and give the configuration a
+good descriptive name, such as “Run Flask Server”, and click <em>Apply</em>.</p>
+<p>Now that we have a configuration which runs <code class="docutils literal"><span class="pre">flask</span> <span class="pre">run</span></code> from within PyCharm,
+we can simply copy that configuration and alter the <em>Script</em> argument
+to run a different CLI command, e.g. <code class="docutils literal"><span class="pre">flask</span> <span class="pre">shell</span></code>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Command Line Interface</a><ul>
+<li><a class="reference internal" href="#application-discovery">Application Discovery</a></li>
+<li><a class="reference internal" href="#run-the-development-server">Run the Development Server</a></li>
+<li><a class="reference internal" href="#open-a-shell">Open a Shell</a></li>
+<li><a class="reference internal" href="#debug-mode">Debug Mode</a></li>
+<li><a class="reference internal" href="#environment-variables-from-dotenv">Environment Variables From dotenv</a></li>
+<li><a class="reference internal" href="#environment-variables-from-virtualenv">Environment Variables From virtualenv</a></li>
+<li><a class="reference internal" href="#custom-commands">Custom Commands</a><ul>
+<li><a class="reference internal" href="#application-context">Application Context</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#plugins">Plugins</a></li>
+<li><a class="reference internal" href="#custom-scripts">Custom Scripts</a></li>
+<li><a class="reference internal" href="#pycharm-integration">PyCharm Integration</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="extensions.html" title="previous chapter">Flask 扩展</a></li>
+      <li>Next: <a href="server.html" title="next chapter">Development Server</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cli.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/cli.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

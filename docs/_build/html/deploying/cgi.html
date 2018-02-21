@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>CGI &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="大型应用" href="../becomingbig.html" />
+    <link rel="prev" title="FastCGI" href="fastcgi.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cgi">
+<h1>CGI<a class="headerlink" href="#cgi" title="Permalink to this headline">¶</a></h1>
+<p>如果所有其它的部署方式都不能奏效，那么 CGI 毫无疑问会奏效。 CGI 被
+所有主流服务器支持，但通常性能欠佳。</p>
+<p>这也是你在 Google 的 <a class="reference external" href="http://code.google.com/appengine/">App Engine</a> 上使用 Flask 应用的方式，其执行方式
+恰好是一个 CGI-like 的环境。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">注意</p>
+<p class="last">请提前确保你在应用文件中的任何 <code class="docutils literal"><span class="pre">app.run()</span></code> 调用在 <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span>
+<span class="pre">'__main__':</span></code> 块中或是移到一个独立的文件。这是因为它总会启动一个本地
+的 WSGI 服务器，并且我们在部署应用到 uWSGI 时不需要它。</p>
+</div>
+<div class="section" id="id1">
+<h2>创建一个 <cite>.cgi</cite> 文件<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>首先你需要创建一个 CGI 应用程序文件。我们把它叫做
+<cite>yourapplication.cgi</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="kn">from</span> <span class="nn">wsgiref.handlers</span> <span class="k">import</span> <span class="n">CGIHandler</span>
+<span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+
+<span class="n">CGIHandler</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>服务器配置<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>通常有两种方式来配置服务器。直接把 <cite>.cgi</cite> 复制到 <cite>cgi-bin</cite> （并且使用
+<cite>mod_rewrite</cite> 或其它类似的东西来重写 URL ） 或让服务器直接指向这个文件。</p>
+<p>例如，在 Apache 中你可以在配置中写入这样的语句:</p>
+<div class="highlight-apache"><div class="highlight"><pre><span></span><span class="nb">ScriptAlias</span> <span class="sx">/app</span> <span class="sx">/path/to/the/application.cgi</span>
+</pre></div>
+</div>
+<p>更多信息请查阅你的 web 服务器的文档。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CGI</a><ul>
+<li><a class="reference internal" href="#id1">创建一个 <cite>.cgi</cite> 文件</a></li>
+<li><a class="reference internal" href="#id2">服务器配置</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">部署方式</a><ul>
+      <li>Previous: <a href="fastcgi.html" title="previous chapter">FastCGI</a></li>
+      <li>Next: <a href="../becomingbig.html" title="next chapter">大型应用</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/deploying/cgi.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/deploying/cgi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

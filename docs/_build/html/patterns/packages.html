@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>大型应用 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="应用工厂" href="appfactories.html" />
+    <link rel="prev" title="Flask 范例" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="larger-applications">
+<span id="id1"></span><h1>大型应用<a class="headerlink" href="#larger-applications" title="Permalink to this headline">¶</a></h1>
+<p>对于大型应用来说使用包代替模块是一个好主意。使用包非常简单。假设有一个小应用如下:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">yourapplication</span>
+    <span class="o">/</span><span class="n">yourapplication</span><span class="o">.</span><span class="n">py</span>
+    <span class="o">/</span><span class="n">static</span>
+        <span class="o">/</span><span class="n">style</span><span class="o">.</span><span class="n">css</span>
+    <span class="o">/</span><span class="n">templates</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">html</span>
+        <span class="n">index</span><span class="o">.</span><span class="n">html</span>
+        <span class="n">login</span><span class="o">.</span><span class="n">html</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<div class="section" id="id2">
+<h2>简单的包<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>要把上例中的小应用换装成大型应用只要在现有应用中创建一个名为 <cite>yourapplication</cite>
+的新文件夹，并把所有东西都移动到这个文件夹内。然后把 <cite>yourapplication.py</cite> 更名为 <cite>__init__.py</cite> 。（请首先删除所有 <cite>.pyc</cite> 文件，否则基本上会出问题）</p>
+<p>修改完后应该如下例:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">yourapplication</span>
+    <span class="o">/</span><span class="n">yourapplication</span>
+        <span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+        <span class="o">/</span><span class="n">static</span>
+            <span class="o">/</span><span class="n">style</span><span class="o">.</span><span class="n">css</span>
+        <span class="o">/</span><span class="n">templates</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">html</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">html</span>
+            <span class="n">login</span><span class="o">.</span><span class="n">html</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<p>但是现在如何运行应用呢？原本的 <code class="docutils literal"><span class="pre">python</span> <span class="pre">yourapplication/__init__.py</span></code> 无法运行了。因为 Python 不希望包内的模块成为启动文件。但是这不是一个大问题，只要在
+<cite>yourapplication</cite> 文件夹旁添加一个 <cite>runserver.py</cite> 文件就可以了，其内容如下:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+<span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>我们从中学到了什么？现在我们来重构一下应用以适应多模块。只要记住以下几点：</p>
+<ol class="arabic simple">
+<li><cite>Flask</cite> 应用对象必须位于  <cite>__init__.py</cite> 文件中。这样每个模块就可以安全地导入，且  <cite>__name__</cite> 变量会解析到正确的包。</li>
+<li>所有视图函数（在顶端有 <a class="reference internal" href="../api.html#flask.Flask.route" title="flask.Flask.route"><code class="xref py py-meth docutils literal"><span class="pre">route()</span></code></a> 的）必须在 <cite>__init__.py</cite>
+文件中被导入。不是导入对象本身，而是导入视图模块。请 <strong>在应用对象创建之后</strong>
+导入视图对象。</li>
+</ol>
+<p><cite>__init__.py</cite> 示例:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">yourapplication.views</span>
+</pre></div>
+</div>
+<p><cite>views.py</cite> 内容如下:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">yourapplication</span> <span class="k">import</span> <span class="n">app</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s1">&#39;Hello World!&#39;</span>
+</pre></div>
+</div>
+<p>最终全部内容如下:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">yourapplication</span>
+    <span class="o">/</span><span class="n">runserver</span><span class="o">.</span><span class="n">py</span>
+    <span class="o">/</span><span class="n">yourapplication</span>
+        <span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>
+        <span class="o">/</span><span class="n">views</span><span class="o">.</span><span class="n">py</span>
+        <span class="o">/</span><span class="n">static</span>
+            <span class="o">/</span><span class="n">style</span><span class="o">.</span><span class="n">css</span>
+        <span class="o">/</span><span class="n">templates</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">html</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">html</span>
+            <span class="n">login</span><span class="o">.</span><span class="n">html</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition- admonition">
+<p class="first admonition-title">回环导入</p>
+<p>回环导入是指两个模块互相导入，本例中我们添加的 <cite>views.py</cite> 就与 <cite>__init__.py</cite>
+相互依赖。每个 Python 程序员都讨厌回环导入。一般情况下回环导入是个坏主意，但在这里一点问题都没有。原因是我们没有真正使用 <cite>__init__.py</cite> 中的视图，只是保证模块被导入，并且我们在文件底部才这样做。</p>
+<p class="last">但是这种方式还是有些问题，因为没有办法使用装饰器。要找到解决问题的灵感请参阅
+<a class="reference internal" href="../becomingbig.html#becomingbig"><span class="std std-ref">大型应用</span></a> 一节。</p>
+</div>
+</div>
+<div class="section" id="working-with-modules">
+<span id="id3"></span><h2>使用蓝图<a class="headerlink" href="#working-with-modules" title="Permalink to this headline">¶</a></h2>
+<p>对于大型应用推荐把应用分隔为小块，每个小块使用蓝图辅助执行。关于这个主题的介绍请参阅 <a class="reference internal" href="../blueprints.html#blueprints"><span class="std std-ref">用蓝图实现模块化应用</span></a> 一节 。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">大型应用</a><ul>
+<li><a class="reference internal" href="#id2">简单的包</a></li>
+<li><a class="reference internal" href="#working-with-modules">使用蓝图</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Flask 范例</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Flask 范例</a></li>
+      <li>Next: <a href="appfactories.html" title="next chapter">应用工厂</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/patterns/packages.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/patterns/packages.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

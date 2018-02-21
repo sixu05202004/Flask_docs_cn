@@ -1,0 +1,131 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>教程 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="介绍 Flaskr" href="introduction.html" />
+    <link rel="prev" title="快速入门" href="../quickstart.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial">
+<span id="id1"></span><h1>教程<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>你想要用 Python 和 Flask 开发一个应用吗？这里你有机会通过实例学习。在这个教程中我们将会创建一个简单的微博客的应用。
+它仅支持一个用户可以创建纯文本条目，并且没有推送或者评论，但是它仍然有你开始时需要的一切。
+我将会使用 Flask 以及来自 Python 框架的 SQLite 作为数据库，所以你不需要其它东西了。</p>
+<p>如果你想提前获得完整源码或是用于比较，请查阅 <a class="reference external" href="http://github.com/mitsuhiko/flask/tree/master/examples/flaskr/">example source</a> 。</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">介绍 Flaskr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="folders.html">Step 0: 创建文件夹</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schema.html">Step 1: 数据库模式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Step 2: 应用设置代码</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dbinit.html">Step 3: 创建数据库</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dbcon.html">Step 4: 请求数据库连接</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">Step 5: 视图函数</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="views.html#id1">显示条目</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#id2">添加新条目</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#id3">登录和注销</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Step 6: 模版</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#layout-html">layout.html</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#show-entries-html">show_entries.html</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#login-html">login.html</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="css.html">Step 7: 添加样式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">福利: 测试应用</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../quickstart.html" title="previous chapter">快速入门</a></li>
+      <li>Next: <a href="introduction.html" title="next chapter">介绍 Flaskr</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorial/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/tutorial/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

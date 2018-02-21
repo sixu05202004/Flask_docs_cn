@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Python 3 支持 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Upgrading to Newer Releases" href="upgrading.html" />
+    <link rel="prev" title="Pocoo 风格指引" href="styleguide.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="python-3">
+<span id="python3-support"></span><h1>Python 3 支持<a class="headerlink" href="#python-3" title="Permalink to this headline">¶</a></h1>
+<p>Flask 以及 它依赖包都支持 Python 3 因此理论上来说你能够在 Python 3 上开始使用它。
+然而在你下一个项目开始使用 Python 3 之前你需要注意一些事情。</p>
+<div class="section" id="id1">
+<h2>要求<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>如果你要使用 Python 3，你将要必须使用 Python 3.3 或者更高的版本。3.2 以及更早的版本是
+<em>不</em> 支持的。</p>
+<p>除此之外你必须使用最新的 <cite>itsdangerous</cite>, <cite>Jinja2</cite> and <cite>Werkzeug</cite> 版本。</p>
+</div>
+<div class="section" id="api">
+<h2>API 稳定性<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<p>Python 3 中的一些关于 unicode 以及 字节使用的决定是的难以编写底层代码。这只要影响了
+WSGI 中间件以及与 WSGI 提供信息交互。Werkzeug 已经封装了高级帮助的所有信息，但是有些是特别添加为了
+支持 Python 3 并且是十分新的。</p>
+<p>许多文档编写的细节是写于 WSGI 升级到 Python 3 之前。尽管 Werkzeug 和 Flask 在 Python 2 版本的 API 在
+Python 3 上没有多少变化，但是也不能保证在 Python 3 上有效。</p>
+</div>
+<div class="section" id="id2">
+<h2>用户少<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Python 3 中目前拥有的PyPI下载统计占 Python 2 中的用户不到 1％。因此，许多你会遇到的问题，
+恐怕也很难在互联网上搜索，如果他们是 Python 3 的特定问题。</p>
+</div>
+<div class="section" id="id3">
+<h2>小生态系统<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>许多 Flask 扩展，所有的文档以及大量的 PyPI 提供的库都不支持 Python 3 。即使你开始的项目清楚地知道需要支持
+Python 3，但是6个月以后不知道会发生什么。如果你使用的库是自己开发的，这就没有什么好担心的。</p>
+</div>
+<div class="section" id="id4">
+<h2>建议<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>除非你已经很熟悉的版本中的差异，我们建议坚持当前版本的Python，直到生态系统变得成熟。</p>
+<p>升级的痛苦大部分是在较低级别的函数库，例如 Flask 和 Werkzeug 等，而不是在实际的高层次的应用程序代码。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python 3 支持</a><ul>
+<li><a class="reference internal" href="#id1">要求</a></li>
+<li><a class="reference internal" href="#api">API 稳定性</a></li>
+<li><a class="reference internal" href="#id2">用户少</a></li>
+<li><a class="reference internal" href="#id3">小生态系统</a></li>
+<li><a class="reference internal" href="#id4">建议</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="styleguide.html" title="previous chapter">Pocoo 风格指引</a></li>
+      <li>Next: <a href="upgrading.html" title="next chapter">Upgrading to Newer Releases</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/python3.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/python3.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

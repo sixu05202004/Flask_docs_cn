@@ -1,0 +1,224 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>安装 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="快速入门" href="quickstart.html" />
+    <link rel="prev" title="给经验丰富的程序员的前言" href="advanced_foreword.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<span id="id1"></span><h1>安装<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Flask 依赖两个外部库， <a class="reference external" href="http://werkzeug.pocoo.org/">Werkzeug</a> 和 <a class="reference external" href="http://jinja.pocoo.org/2/">Jinja2</a>。Werkzeug
+是一个 WSGI 工具集，它是 web 应用程序和用于开发和部署的服务器之间的标准接口。Jinja2 负责渲染模板。</p>
+<p>因此怎样才能快速地安装这一切了？你有很多种方法去安装，但是最简单粗暴的方式就是 virtualenv，
+让我们首先来看看它。</p>
+<p>你首先需要 Python 2.6 或更高的版本，所以请确认有一个最新的 Python 2.x 安装。对于在 Python 3 中使用 Flask，请参看 <a class="reference external" href="http://werkzeug.pocoo.org/docs/python3/#python3" title="(in Werkzeug v0.14-dev)"><span>Python 3 Notes</span></a>。</p>
+<div class="section" id="virtualenv">
+<span id="id2"></span><h2>virtualenv<a class="headerlink" href="#virtualenv" title="Permalink to this headline">¶</a></h2>
+<p>也许 Virtualenv 是你在开发中最愿意使用的，如果你在生产机器上有 shell 权限的时候，你也会愿意用上 virtualenv。</p>
+<p>virtualenv 解决了什么问题？如果你像我一样喜欢 Python 的话，有很多机会在基于 Flask 的 web 应用外的其它项目上使用 Python。
+然而项目越多，越有可能在不同版本的 python，或者至少在不同 python 库的版本上工作。
+我们需要面对这样的事实：库破坏向后兼容性的情况相当常见，而且零依赖的正式应用也不大可能存在。
+如此，当你的项目中的两个或更多出现依赖性冲突，你会怎么做？</p>
+<p>Virtualenv 的出现解决这一切！Virtualenv 能够允许多个不同版本的 Python 安装，每一个服务于各自的项目。
+它实际上并没有安装独立的 Python 副本，只是提供了一种方式使得环境保持独立。让我们见识下 virtualenv 怎么工作的。</p>
+<p>如果你在 Mac OS X 或 Linux下，下面两条命令可能会适用:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo easy_install virtualenv
+</pre></div>
+</div>
+<p>或者更好的:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip install virtualenv
+</pre></div>
+</div>
+<p>上述的命令会在你的系统中安装 virtualenv。它甚至可能会出现在包管理器中。如果你使用 Ubuntu ，请尝试:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo apt-get install python-virtualenv
+</pre></div>
+</div>
+<p>如果是在 Windows 下并且没有安装 <cite>easy_install</cite> 命令，你首先必须安装 <cite>easy_install</cite> 。
+要想获取更多的安装信息，请查看 <a class="reference internal" href="#windows-easy-install"><span class="std std-ref">Windows 下的 pip 和 distribute</span></a> 。一旦安装好 <cite>easy_install</cite> ，
+运行上述的命令，但是要去掉 sudo 前缀。</p>
+<p>一旦成功安装 virtualenv，运行 shell 创建自己的环境。我通常会创建一个项目文件夹，其下创建 <cite>venv</cite> 文件夹:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir myproject
+$ cd myproject
+$ virtualenv venv
+New python executable in venv/bin/python
+Installing distribute............done.
+</pre></div>
+</div>
+<p>现在，只要你想要在某个项目上工作，只要激活相应的环境。在 OS X 和 Linux 下，按如下做:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ . venv/bin/activate
+</pre></div>
+</div>
+<p>如果你是个 Windows 用户，下面的命令行是为你准备的:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ venv\scripts\activate
+</pre></div>
+</div>
+<p>无论哪种方式，你现在能够使用你的 virtualenv (注意你的 shell 提示符显示的是活动的环境)。</p>
+<p>现在你只需要键入以下的命令来激活你的 virtualenv 中的 Flask:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ pip install Flask
+</pre></div>
+</div>
+<p>几秒后，一切就为你准备就绪。</p>
+</div>
+<div class="section" id="id3">
+<h2>全局安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>这样也是可能的，尽管我不推荐。只需要以 root 权限运行 pip:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ sudo pip install Flask
+</pre></div>
+</div>
+<p>(在 Windows 系统上，在管理员权限的命令提示符中运行这条命令，不需要 sudo。)</p>
+</div>
+<div class="section" id="flask-living-on-the-edge">
+<h2>体验最新的 Flask (Living on the Edge)<a class="headerlink" href="#flask-living-on-the-edge" title="Permalink to this headline">¶</a></h2>
+<p>如果你想要用最新版的 Flask 干活，这里有两种方式：你可以使用 pip 拉取开发版本，
+或让它操作一个 git checkout。无论哪种方式，依然推荐使用 virtualenv。</p>
+<p>在一个新的 virtualenv 上获取一个 git checkout，在开发模式下运行:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ git clone http://github.com/mitsuhiko/flask.git
+Initialized empty Git repository in ~/dev/flask/.git/
+$ cd flask
+$ virtualenv venv --distribute
+New python executable in venv/bin/python
+Installing distribute............done.
+$ . venv/bin/activate
+$ python setup.py develop
+...
+Finished processing dependencies for Flask
+</pre></div>
+</div>
+<p>这会拉取依赖关系并激活 git head 作为 virtualenv 中的当前版本。然后你只需要执行 <code class="docutils literal"><span class="pre">git</span> <span class="pre">pull</span>
+<span class="pre">origin</span></code> 来升级到最新版本。</p>
+<p>没有 git 下获取最新的开发版本，需要这样做:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$ mkdir flask
+$ cd flask
+$ virtualenv venv --distribute
+$ . venv/bin/activate
+New python executable in venv/bin/python
+Installing distribute............done.
+$ pip install Flask==dev
+...
+Finished processing dependencies for Flask==dev
+</pre></div>
+</div>
+</div>
+<div class="section" id="windows-pip-distribute">
+<span id="windows-easy-install"></span><h2>Windows 下的 <cite>pip</cite> 和 <cite>distribute</cite><a class="headerlink" href="#windows-pip-distribute" title="Permalink to this headline">¶</a></h2>
+<p>在 Windows 系统下，安装 <cite>easy_install</cite> 有些棘手，但是仍然很简单。最简单的方式是下载
+<a class="reference external" href="http://python-distribute.org/distribute_setup.py">distribute_setup.py</a> 文件接着运行它。运行这个文件最简单的方式就是打开下载文件夹接着双击这个文件。</p>
+<p>接着，把 Python 的 Scripts 文件夹添加到 <cite>PATH</cite> 环境变量来，这样 <cite>easy_install</cite> 命令和其它 Python 脚本就加入到了命令行自动搜索的路径。做法是：右键单击桌面上或是“开始”菜单中的“我的电脑”图标，选择“属性”，
+然后单击“高级系统设置”（在 Windows XP 中，单击“高级”选项卡），然后单击“环境变量”按钮，
+最后双击“系统变量”栏中的“Path”变量，并加入你的 Python 解释器的 Scripts 文件夹。
+确保你用分号把它和现有的值分隔开。假设你使用 Python 2.7 且为默认目录，添加下面的值:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">;</span><span class="n">C</span><span class="p">:</span>\<span class="n">Python27</span>\<span class="n">Scripts</span>
+</pre></div>
+</div>
+<p>这样就完成了！为了检测是否正常工作，打开命令提示符执行 <code class="docutils literal"><span class="pre">easy_install</span></code>。在 Windows Vista
+或者 Windows 7 下如果开启了用户账户控制，它应该提示需要管理员权限。</p>
+<p>现在已经安装好 <code class="docutils literal"><span class="pre">easy_install</span></code>，你能使用它来安装 <code class="docutils literal"><span class="pre">pip</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">easy_install</span> <span class="n">pip</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">安装</a><ul>
+<li><a class="reference internal" href="#virtualenv">virtualenv</a></li>
+<li><a class="reference internal" href="#id3">全局安装</a></li>
+<li><a class="reference internal" href="#flask-living-on-the-edge">体验最新的 Flask (Living on the Edge)</a></li>
+<li><a class="reference internal" href="#windows-pip-distribute">Windows 下的 <cite>pip</cite> 和 <cite>distribute</cite></a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="advanced_foreword.html" title="previous chapter">给经验丰富的程序员的前言</a></li>
+      <li>Next: <a href="quickstart.html" title="next chapter">快速入门</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/installation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/installation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

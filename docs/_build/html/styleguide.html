@@ -1,0 +1,304 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Pocoo 风格指引 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Python 3 支持" href="python3.html" />
+    <link rel="prev" title="Flask 扩展开发" href="extensiondev.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pocoo">
+<h1>Pocoo 风格指引<a class="headerlink" href="#pocoo" title="Permalink to this headline">¶</a></h1>
+<p>Pocoo 风格指引是所有 Pocoo 项目的风格指引，包括 Flask 。这份风格指引
+在 Flask 补丁中是必须的，并且推荐在 Flask 扩展中使用。</p>
+<p>一般而言， Pocoo 风格指引遵循 <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0008"><strong>PEP 8</strong></a> ，有一些小差异和扩充。</p>
+<div class="section" id="id1">
+<h2>总体布局<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>缩进:</dt>
+<dd>4个空格。没有制表符，没有例外。</dd>
+<dt>最大行长:</dt>
+<dd>79字符，软限制是 84 ，如果绝对必要。尝试合理放置 <cite>break</cite> 、 <cite>continue</cite>
+和 <cite>return</cite> 声明来避免代码过度嵌套。</dd>
+<dt>可续长语句:</dt>
+<dd><p class="first">你可以使用反斜线来继续一个语句，在这种情况下，你应该对齐下一行到最后一个
+点或等号或缩进四个空格:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">this_is_a_very_long</span><span class="p">(</span><span class="n">function_call</span><span class="p">,</span> <span class="s1">&#39;with many parameters&#39;</span><span class="p">)</span> \
+    <span class="o">.</span><span class="n">that_returns_an_object_with_an_attribute</span>
+
+<span class="n">MyModel</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">scalar</span> <span class="o">&gt;</span> <span class="mi">120</span><span class="p">)</span> \
+             <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span> \
+             <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>如果你在一个带括号的语句中换行，对齐到括号:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">this_is_a_very_long</span><span class="p">(</span><span class="n">function_call</span><span class="p">,</span> <span class="s1">&#39;with many parameters&#39;</span><span class="p">,</span>
+                    <span class="mi">23</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="s1">&#39;and even more&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>对于有许多元素的元组或列表，在起始括号后立即换行:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">items</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;this is the first&#39;</span><span class="p">,</span> <span class="s1">&#39;set of items&#39;</span><span class="p">,</span> <span class="s1">&#39;with more items&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;to come in this line&#39;</span><span class="p">,</span> <span class="s1">&#39;like this&#39;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+<dt>空行:</dt>
+<dd><p class="first">顶层函数和类由两个空行分隔，其它的东西由一行。不要使用太多的空行来分隔
+代码中的逻辑段。例如:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="s1">&#39;Hello </span><span class="si">%s</span><span class="s1">!&#39;</span> <span class="o">%</span> <span class="n">name</span>
+
+
+<span class="k">def</span> <span class="nf">goodbye</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="s1">&#39;See you </span><span class="si">%s</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">name</span>
+
+
+<span class="k">class</span> <span class="nc">MyClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a simple docstring&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">get_annoying_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;!!!!111&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="id2">
+<h2>表达式和语句<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>常规空格规则:</dt>
+<dd><ul class="first simple">
+<li>不对不是单词的一元运算符使用空格（例如 <code class="docutils literal"><span class="pre">-</span></code> 、 <code class="docutils literal"><span class="pre">~</span></code> 等等），
+在圆括号内同样</li>
+<li>在二元运算符见使用空格</li>
+</ul>
+<p>好例子:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">exp</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.05</span>
+<span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">item_value</span> <span class="o">/</span> <span class="n">item_count</span><span class="p">)</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">/</span> <span class="n">exp</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">my_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">my_dict</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>糟糕的例子:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">exp</span> <span class="o">=</span> <span class="o">-</span> <span class="mf">1.05</span>
+<span class="n">value</span> <span class="o">=</span> <span class="p">(</span> <span class="n">item_value</span> <span class="o">/</span> <span class="n">item_count</span> <span class="p">)</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">/</span> <span class="n">exp</span>
+<span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">item_value</span><span class="o">/</span><span class="n">item_count</span><span class="p">)</span><span class="o">*</span><span class="n">offset</span><span class="o">/</span><span class="n">exp</span>
+<span class="n">value</span><span class="o">=</span><span class="p">(</span> <span class="n">item_value</span><span class="o">/</span><span class="n">item_count</span> <span class="p">)</span> <span class="o">*</span> <span class="n">offset</span><span class="o">/</span><span class="n">exp</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">my_list</span><span class="p">[</span> <span class="n">index</span> <span class="p">]</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">my_dict</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+<dt>不能使用 Yoda 语句:</dt>
+<dd><p class="first">永远不要用常量与变量做比较，而是把变量与常量做比较:</p>
+<p>好例子:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;md5&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>糟糕的例子:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="s1">&#39;md5&#39;</span> <span class="o">==</span> <span class="n">method</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</dd>
+<dt>比较:</dt>
+<dd><ul class="first last simple">
+<li>跟任意类型: <code class="docutils literal"><span class="pre">==</span></code> 和 <code class="docutils literal"><span class="pre">!=</span></code></li>
+<li>跟单例，使用 <code class="docutils literal"><span class="pre">is</span></code> 和 <code class="docutils literal"><span class="pre">is</span> <span class="pre">not</span></code> （例如 <code class="docutils literal"><span class="pre">foo</span> <span class="pre">is</span> <span class="pre">not</span>
+<span class="pre">None</span></code> ）</li>
+<li>永远不要与 <cite>True</cite> 或 <cite>False</cite> 做比较（比如永远不要
+写 <code class="docutils literal"><span class="pre">foo</span> <span class="pre">==</span> <span class="pre">False</span></code> ，而是 <code class="docutils literal"><span class="pre">not</span> <span class="pre">foo</span></code> ）</li>
+</ul>
+</dd>
+<dt>否定包含检查:</dt>
+<dd>使用 <code class="docutils literal"><span class="pre">foo</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">bar</span></code> 而不是 <code class="docutils literal"><span class="pre">not</span> <span class="pre">foo</span> <span class="pre">in</span> <span class="pre">bar</span></code></dd>
+<dt>实例检查:</dt>
+<dd>用 <code class="docutils literal"><span class="pre">isinstance(a,</span> <span class="pre">C)</span></code> 而不是 <code class="docutils literal"><span class="pre">type(A)</span> <span class="pre">is</span> <span class="pre">C</span></code> ， 但通常试图避免
+实例检查，请对特性检查。</dd>
+</dl>
+</div>
+<div class="section" id="id3">
+<h2>命名约定<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>类名: <code class="docutils literal"><span class="pre">CamelCase</span></code> ，缩写词大写 （ <code class="docutils literal"><span class="pre">HTTPWriter</span></code>
+而非 <code class="docutils literal"><span class="pre">HttpWriter</span></code> ）</li>
+<li>变量名: <code class="docutils literal"><span class="pre">lowercase_with_underscores</span></code></li>
+<li>方法和函数名: <code class="docutils literal"><span class="pre">lowercase_with_underscores</span></code></li>
+<li>常量: <code class="docutils literal"><span class="pre">UPPERCASE_WITH_UNDERSCORES</span></code></li>
+<li>预编译正则表达式: <code class="docutils literal"><span class="pre">name_re</span></code></li>
+</ul>
+<p>被保护的成员以单个下划线作为前缀，双下划线为混合类保留。</p>
+<p>在带有关键字的类上，会添加结尾的下划线。与内置构件冲突是允许的，并且
+<strong>一定不要</strong> 在用在变量名后添加下划线的方式解决。如果函数需要访问一个隐蔽
+的内置构件，重绑定内置构件到一个不同的名字作为替代。</p>
+<dl class="docutils">
+<dt>函数和方法参数:</dt>
+<dd><ul class="first last simple">
+<li>类方法: <code class="docutils literal"><span class="pre">cls</span></code> 作为第一个参数</li>
+<li>实例方法: <code class="docutils literal"><span class="pre">self</span></code> 作为第一个参数</li>
+<li>属性的 lambda 表达式应该把第一个参数替换为 <code class="docutils literal"><span class="pre">x</span></code> ，像 <code class="docutils literal"><span class="pre">display_name</span> <span class="pre">=</span>
+<span class="pre">property(lambda</span> <span class="pre">x:</span> <span class="pre">x.real_name</span> <span class="pre">or</span> <span class="pre">x.username)</span></code> 中一样</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="id4">
+<h2>文档字符串<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>文档字符串约定:</dt>
+<dd><p class="first">所有的文档字符串为 Sphinx 可理解的 reStructuredText 格式。它们的形态
+因行数不同而迥异。如果只有一行，闭合的三引号和开头的三引号在同一行，
+否则开头的三引号与文本在同一行，而闭合的三引号另起一行:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;This is a simple docstring&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">bar</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;This is a longer docstring with so much information in there</span>
+<span class="sd">    that it spans three lines.  In this case the closing triple quote</span>
+<span class="sd">    is on its own line.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</dd>
+<dt>模块标头:</dt>
+<dd><p class="first">模块标头包含一个 utf-8 编码声明（即使没有使用非 ASCII 字符，也始终推
+荐这么做）和一个标准的文档字符串:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    package.module</span>
+<span class="sd">    ~~~~~~~~~~~~~~</span>
+
+<span class="sd">    A brief description goes here.</span>
+
+<span class="sd">    :copyright: (c) YEAR by AUTHOR.</span>
+<span class="sd">    :license: LICENSE_NAME, see LICENSE_FILE for more details.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p class="last">请留意何时的版权和许可证文件对于通过审核的 Flask 扩展是必须的。</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="id5">
+<h2>注释<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>注释的规则和文档字符串类似。两者都使用 reStructuredText 格式。如果一个
+注释被用于一个属性的文档，在起始的井号（ <code class="docutils literal"><span class="pre">#</span></code> ）后加一个冒号:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1">#: the name of the user as unicode string</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="c1">#: the sha1 hash of the password + inline salt</span>
+    <span class="n">pw_hash</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Pocoo 风格指引</a><ul>
+<li><a class="reference internal" href="#id1">总体布局</a></li>
+<li><a class="reference internal" href="#id2">表达式和语句</a></li>
+<li><a class="reference internal" href="#id3">命名约定</a></li>
+<li><a class="reference internal" href="#id4">文档字符串</a></li>
+<li><a class="reference internal" href="#id5">注释</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="extensiondev.html" title="previous chapter">Flask 扩展开发</a></li>
+      <li>Next: <a href="python3.html" title="next chapter">Python 3 支持</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/styleguide.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/styleguide.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

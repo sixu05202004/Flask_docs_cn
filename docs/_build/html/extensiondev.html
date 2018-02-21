@@ -1,0 +1,431 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flask 扩展开发 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pocoo 风格指引" href="styleguide.html" />
+    <link rel="prev" title="Flask 中的 Unicode" href="unicode.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="flask">
+<span id="extension-dev"></span><h1>Flask 扩展开发<a class="headerlink" href="#flask" title="Permalink to this headline">¶</a></h1>
+<p>Flask，一个微框架，通常需要一些重复的步骤来让第三方库工作。因为在很多时候，
+这些步骤可以被分离出，来支持多个项目，就有了 <a class="reference external" href="http://flask.pocoo.org/extensions/">Flask Extension Registry</a> 。</p>
+<p>如果你想要为还没有的功能创建你自己的 Flask 扩展，这份扩展开发指南会帮助你
+在很短的时间内让你的应用跑起来并且感到像用户一样期待你的扩展运转。</p>
+<div class="section" id="id1">
+<h2>剖析扩展<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>所有的扩展都位于一个叫做 <code class="docutils literal"><span class="pre">flask_something</span></code> 的包，其中“ something ”是你
+想要连接的库的名字。那么，例如当你计划要为 Flask 添加一个叫做 <cite>simplexml</cite>
+的库的支持时，你应该把你扩展的包命名为 <code class="docutils literal"><span class="pre">flask_simplexml</span></code> 。</p>
+<p>实际的扩展名（人类可读的名称）无论如何会是“Flask-SimpleXML”之类的东西。
+确保在名字中包含“Flask”并注意大小写。这是用户可以在他们的 <cite>setup.py</cite> 文
+件中注册你扩展依赖的方式。</p>
+<p>Flask 设立了一个叫做 <code class="xref py py-data docutils literal"><span class="pre">flask.ext</span></code> 的重定向包，用户应该从这个包导入
+扩展。例如，如果你有一个叫做 <cite>flask_something</cite> 的包，用户应该用
+<code class="docutils literal"><span class="pre">flask.ext.something</span></code> 的方式导入。这样做是为了从老命名空间的包过度。
+详情见 <a class="reference internal" href="#ext-import-transition"><span class="std std-ref">扩展导入的过渡</span></a> 。</p>
+<p>但是扩展如何看起来像扩展？一个扩展必须保证它可以同时在多个 Flask 应用中工
+作。这是必要条件，因为许多人回使用类似 <a class="reference internal" href="patterns/appfactories.html#app-factories"><span class="std std-ref">应用工厂</span></a> 的模式来创建
+应用来进行单元测试或是支持多套配置。因此，你的应用支持这种行为非常重要。</p>
+<p>最重要的是，扩展必须与一个 <cite>setup.py</cite> 一起装配，并且在 PyPI 上注册。同样，
+开发 checkout 链接也应该能工作，这样才可以在 virtualenv 中容易地安装开发版
+本，而不是手动下载库。</p>
+<p>Flask 扩展必须以 BSD 或 MIT 或更自由的许可证来许可，才能被征募到 Flask
+Extension Registry 。记住 Flask Extension Registry 是一个人工维护的地方，
+并且如果库表现为必需的，将会提前审查。</p>
+</div>
+<div class="section" id="hello-flaskext">
+<h2>“Hello Flaskext!”<a class="headerlink" href="#hello-flaskext" title="Permalink to this headline">¶</a></h2>
+<p>那么让我们开始创建这样一个 Flask 扩展。我们这里想要创建的扩展会提供 SQLite3
+最基础的支持。</p>
+<p>首先我们创建下面的目录结构:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flask</span><span class="o">-</span><span class="n">sqlite3</span><span class="o">/</span>
+    <span class="n">flask_sqlite3</span><span class="o">.</span><span class="n">py</span>
+    <span class="n">LICENSE</span>
+    <span class="n">README</span>
+</pre></div>
+</div>
+<p>这里是最重要的文件的内容:</p>
+<div class="section" id="setup-py">
+<h3>setup.py<a class="headerlink" href="#setup-py" title="Permalink to this headline">¶</a></h3>
+<p>下一个绝对需要的文件是 <cite>setup.py</cite> ，用于安装你的 Flask 扩展。你可以使用下
+面的内容:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Flask-SQLite3</span>
+<span class="sd">-------------</span>
+
+<span class="sd">This is the description for that library</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">setuptools</span> <span class="k">import</span> <span class="n">setup</span>
+
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Flask-SQLite3&#39;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+    <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://example.com/flask-sqlite3/&#39;</span><span class="p">,</span>
+    <span class="n">license</span><span class="o">=</span><span class="s1">&#39;BSD&#39;</span><span class="p">,</span>
+    <span class="n">author</span><span class="o">=</span><span class="s1">&#39;Your Name&#39;</span><span class="p">,</span>
+    <span class="n">author_email</span><span class="o">=</span><span class="s1">&#39;your-email@example.com&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Very short description&#39;</span><span class="p">,</span>
+    <span class="n">long_description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span>
+    <span class="n">py_modules</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;flask_sqlite3&#39;</span><span class="p">],</span>
+    <span class="c1"># if you would be using a package instead use packages instead</span>
+    <span class="c1"># of py_modules:</span>
+    <span class="c1"># packages=[&#39;flask_sqlite3&#39;],</span>
+    <span class="n">zip_safe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">include_package_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">platforms</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span>
+    <span class="n">install_requires</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;Flask&#39;</span>
+    <span class="p">],</span>
+    <span class="n">classifiers</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;Environment :: Web Environment&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Intended Audience :: Developers&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;License :: OSI Approved :: BSD License&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Operating System :: OS Independent&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Programming Language :: Python&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Topic :: Internet :: WWW/HTTP :: Dynamic Content&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Topic :: Software Development :: Libraries :: Python Modules&#39;</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>这有相当多的代码，但是你实际上可以从现有的扩展中直接复制/粘贴，并修改相应的
+内容。</p>
+</div>
+<div class="section" id="flask-sqlite3-py">
+<h3>flask_sqlite3.py<a class="headerlink" href="#flask-sqlite3-py" title="Permalink to this headline">¶</a></h3>
+<p>现在这个是你的扩展放代码的位置。但是这样一个扩展到底看起来是什么样？
+最佳实践是什么？继续阅读，你会有一些认识。</p>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>初始化扩展<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>许多扩展会需要某种类型的初始化步骤。比如，想象一个应用像文档中建议的一样
+(<a class="reference internal" href="patterns/sqlite3.html#sqlite3"><span class="std std-ref">在 Flask 中使用 SQLite 3</span></a>) 正在连接到 SQLite。那么，扩展如何获知应用对象的名称？</p>
+<p>相当简单：你传递应用对象到它。</p>
+<p>有两种推荐的初始化应用的方式:</p>
+<p>初始化函数:</p>
+<blockquote>
+<div>如果你的扩展叫做 <cite>helloworld</cite> ，你应该有一个名为
+<code class="docutils literal"><span class="pre">init_helloworld(app[,</span> <span class="pre">extra_args])</span></code> 的函数来为应用初始化扩展。它
+可以附加在处理器前/后等位置。</div></blockquote>
+<dl class="docutils">
+<dt>类:</dt>
+<dd>类的工作大多像初始化函数，但可以在之后进一步更改其行为。例如
+<a class="reference external" href="http://packages.python.org/Flask-OAuth/">OAuth 扩展</a> 的工作方式，一个 <cite>OAuth</cite> 对象提供一些诸如
+<cite>OAuth.remote_app</cite> 的助手函数来创建一个使用 OAuth 的远程应用的引用。</dd>
+</dl>
+<p>用什么取决于你想要什么。对于 SQLite 3 扩展，我们会使用基于类的方法，因为它
+提供用户一个可以承担打开和关闭数据库连接的对象。</p>
+<p>关于类，重要的是它们鼓励在模块层内共享。这种情况下，对象本身在任何情况下
+不得存储任何应用的特定状态，而必须可以在不同的应用间共享。</p>
+</div>
+<div class="section" id="id3">
+<h2>扩展的代码<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>下面是用来复制/粘贴的 <cite>flask_sqlite3.py</cite> 的内容:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="c1"># Find the stack on which we want to store the database connection.</span>
+<span class="c1"># Starting with Flask 0.9, the _app_ctx_stack is the correct one,</span>
+<span class="c1"># before that we need to use the _request_ctx_stack.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">_app_ctx_stack</span> <span class="k">as</span> <span class="n">stack</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">_request_ctx_stack</span> <span class="k">as</span> <span class="n">stack</span>
+
+
+<span class="k">class</span> <span class="nc">SQLite3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">app</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">init_app</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;SQLITE3_DATABASE&#39;</span><span class="p">,</span> <span class="s1">&#39;:memory:&#39;</span><span class="p">)</span>
+        <span class="c1"># Use the newstyle teardown_appcontext if it&#39;s available,</span>
+        <span class="c1"># otherwise fall back to the request context</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;teardown_appcontext&#39;</span><span class="p">):</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">teardown_appcontext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">teardown</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">teardown_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">teardown</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;SQLITE3_DATABASE&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">top</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s1">&#39;sqlite3_db&#39;</span><span class="p">):</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">sqlite3_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">top</span>
+        <span class="k">if</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="s1">&#39;sqlite3_db&#39;</span><span class="p">):</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">sqlite3_db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">sqlite3_db</span>
+</pre></div>
+</div>
+<p>那么这是这些代码做的事情:</p>
+<ol class="arabic">
+<li><p class="first"><code class="docutils literal"><span class="pre">__init__</span></code> 方法接受一个可选的应用对象，并且如果提供，会调用 <code class="docutils literal"><span class="pre">init_app</span></code> 。</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">init_app</span></code> 方法使得 <code class="docutils literal"><span class="pre">SQLite3</span></code> 对象不需要应用对象就可以实例化。这个方法
+支持工厂模式来创建应用。 <code class="docutils literal"><span class="pre">init_app</span></code> 会为数据库设定配置，如果不提供配置，默
+认是一个内存中的数据库。此外， <code class="docutils literal"><span class="pre">init_app</span></code> 方法附加到 <code class="docutils literal"><span class="pre">teardown</span></code> 处理器。
+它会试图使用新样式的应用上下文处理器，并且如果它不存在，退回到请求上下文处理
+器。</p>
+</li>
+<li><p class="first">接下来，我们定义了 <code class="docutils literal"><span class="pre">connect</span></code> 方法来打开一个数据库连接。</p>
+</li>
+<li><p class="first">最后，我们添加一个 <code class="docutils literal"><span class="pre">connection</span></code> 属性，首次访问时打开数据库连接，并把它存储
+在上下文。这也是处理资源的推荐方式：在资源第一次使用时惰性获取资源。</p>
+<p>注意这里，我们把数据库链接通过 <code class="docutils literal"><span class="pre">_app_ctx_stack.top</span></code> 附加到应用上下文
+的栈顶。扩展应该使用上下文的栈顶来存储它们自己的信息，并使用足够复杂的
+名称。注意我们退化到 <code class="docutils literal"><span class="pre">_request_ctx_stack.top</span></code> ，当应用使用不支持它的
+老版本的 Flask 。</p>
+</li>
+</ol>
+<p>那么为什么我们决定在此使用基于类的方法？因为使用我们的扩展的情况看起来
+会是这样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask_sqlite3</span> <span class="k">import</span> <span class="n">SQLite3</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_pyfile</span><span class="p">(</span><span class="s1">&#39;the-config.cfg&#39;</span><span class="p">)</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">SQLite3</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>你之后可以再视图中这样使用数据库:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_all</span><span class="p">():</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>同样地，如果你在请求之外，而你在使用支持应用上下文 Flask 0.9 或之后版本，
+你可以用同样的方法使用数据库:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>在 <cite>with</cite> 块的最后，销毁处理器会自动执行。</p>
+<p>此外， <code class="docutils literal"><span class="pre">init_app</span></code> 方法用于支持创建应用的工厂模式:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">db</span> <span class="o">=</span> <span class="n">Sqlite3</span><span class="p">()</span>
+<span class="c1"># Then later on.</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">(</span><span class="s1">&#39;the-config.cfg&#39;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>记住支持创建应用的工厂模式需要已审核的 Flask 扩展（下面会解释）。</p>
+<div class="admonition-init-app admonition">
+<p class="first admonition-title"><code class="docutils literal"><span class="pre">init_app</span></code> 的注意事项</p>
+<p>如你所见， <code class="docutils literal"><span class="pre">init_app</span></code> 不分配 <code class="docutils literal"><span class="pre">app</span></code> 到 <code class="docutils literal"><span class="pre">self</span></code> 。这是故意的！基于
+类的 Flask 扩展必须只在应用传递到构造函数时在对象上存储应用。这告诉扩
+展：我对使用多个应用没有兴趣。</p>
+<p class="last">当扩展需要找出当前的应用且它没有一个指向其的引用，必须使用
+<a class="reference internal" href="api.html#flask.current_app" title="flask.current_app"><code class="xref py py-data docutils literal"><span class="pre">current_app</span></code></a> 上下文局域变量或用一种你可以显式传递应用的
+方法更改 API 。</p>
+</div>
+</div>
+<div class="section" id="app-ctx-stack">
+<h2>使用 _app_ctx_stack<a class="headerlink" href="#app-ctx-stack" title="Permalink to this headline">¶</a></h2>
+<p>在上面的例子中，在每个请求之前，一个 <code class="docutils literal"><span class="pre">sqlite3_db</span></code> 被分配到
+<code class="docutils literal"><span class="pre">_app_ctx_stack.top</span></code> 。在一个视图函数中，这个变量可以使用 <code class="docutils literal"><span class="pre">SQLite3</span></code>
+的属性 <code class="docutils literal"><span class="pre">connection</span></code> 来访问。在请求销毁时， <code class="docutils literal"><span class="pre">sqlite3_db</span></code> 连接被关闭。
+通过使用这个模式， <em>相同</em> 的 sqlite3 数据库连接在请求期间对任何东西都是
+可访问的。</p>
+<p>如果 <a class="reference internal" href="api.html#flask._app_ctx_stack" title="flask._app_ctx_stack"><code class="xref py py-data docutils literal"><span class="pre">_app_ctx_stack</span></code></a> 因为用户使用了老版本的 Flask 不存在，
+建议退化到限定在请求中的 <a class="reference internal" href="api.html#flask._request_ctx_stack" title="flask._request_ctx_stack"><code class="xref py py-data docutils literal"><span class="pre">_request_ctx_stack</span></code></a> 。</p>
+</div>
+<div class="section" id="id4">
+<h2>销毁行为<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p><em>这只在你想要支持 Flask 0.6 和更老版本时有关</em></p>
+<p>由于在 Flask 0.7 中关于在请求的最后运行的函数的变更，你的应用需要在此格外
+小心，如果要继续支持 Flask 的更老版本。下面的模式是一个兼顾新旧的好方法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">close_connection</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">_request_ctx_stack</span><span class="o">.</span><span class="n">top</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">sqlite3_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;teardown_request&#39;</span><span class="p">):</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">teardown_request</span><span class="p">(</span><span class="n">close_connection</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">after_request</span><span class="p">(</span><span class="n">close_connection</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>严格地讲，上面的代码是错误的，因为销毁函数接受异常且典型地不返回任何东西。
+尽管如此，因为返回值被丢弃，这刚好会工作，假设中间的代码不触碰传递的参数。</p>
+</div>
+<div class="section" id="id5">
+<h2>他山之玉，可以攻石<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>本文档只接触了扩展开发中绝对的最小部分，如果你想要了解更多，一个非常好的
+主意是查看 <a class="reference external" href="http://flask.pocoo.org/extensions/">Flask Extension Registry</a> 上已有的扩展。如果你感到失落，也有
+<a class="reference external" href="http://flask.pocoo.org/mailinglist/">邮件列表</a>  和 <a class="reference external" href="http://flask.pocoo.org/community/irc/">IRC 频道</a> 来获取一些漂亮 API 的想法。特别是当你在做之前
+没人做过的东西，这回事一个非常好的主意来获得更多投入。这不仅获得人们会想
+从扩展中得到什么的想法，也可避免多个开发者重复发明轮子。</p>
+<p>记住：良好的 API 设计是困难的，所以请在邮件列表里介绍你的项目，让
+其它开发者在 API 设计上助你一臂之力。</p>
+<p>最好的 Flask 扩展是那些为 API 共享通用风格的扩展，并且这只在起初就协作时
+奏效。</p>
+</div>
+<div class="section" id="id6">
+<h2>已审核的扩展<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>Flask 也有已审核的扩展的概念。已审核的扩展被作为 Flask 自身的一部分来测
+试来保证在新版本中不会破坏。这些已审核的扩展会在
+<a class="reference external" href="http://flask.pocoo.org/extensions/">Flask Extension Registry</a> 中列出，并有相应的标记。如果你想要自己的扩展
+通过审核，你需要遵守下面的指导方针:</p>
+<ol class="arabic simple" start="0">
+<li>一个通过审核的 Flask 扩展需要一个维护者。如果一个扩展作者想要超越项目，
+项目应该寻找一个新的维护者，包括完整的源码托管过渡和 PyPI 访问。如果没
+有可用的维护者，请给 Flask 核心团队访问权限。</li>
+<li>一个通过审核的 Flask 扩展必须确切地提供一个名为 <code class="docutils literal"><span class="pre">flask_extensioname</span></code> 的
+包或模块。它们也可能驻留在 <code class="docutils literal"><span class="pre">flaskext</span></code> 命名空间包内部，虽然现在这不被推荐。</li>
+<li>它必须伴随一个可以使用 <code class="docutils literal"><span class="pre">make</span> <span class="pre">test</span></code> 或 <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">test</span></code> 的调用测
+试套件。对于用 <code class="docutils literal"><span class="pre">make</span> <span class="pre">test</span></code> 测试的套件，扩展必须确保所有测试需要的依赖关
+系都被自动处理好。如果测试由 <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">test</span></code> 调用，测试的依赖关系
+由 <cite>setup.py</cite> 文件指定。测试套件也必须是分发的一部分。</li>
+<li>通过审核的扩展的 API 可以通过下面特性的检查:
+- 一个通过审核的扩展必须支持在同一个 Python 进程中支持多个应用
+- 必须支持使用工厂模式创建应用</li>
+<li>必须以 BSD/MIT/WTFPL 许可</li>
+<li>官方扩展的命名模式是 <em>Flask-ExtensionName</em> 或 <em>ExtensionName-Flask</em></li>
+<li>通过审核的扩展必须在 <cite>setup.py</cite> 文件里定义好它们的依赖关系，除非因
+其在 PyPI 上不可用而不会被遇到</li>
+<li>扩展的文档必须使用两种 Flask 的 Sphinx 文档主题中的一个</li>
+<li>setup.py 描述（因此PyPI 描述同）必须链接到文档、网站（如果有），
+并且必须有一个链接来自动安装开发版本（ <code class="docutils literal"><span class="pre">PackageName==dev</span></code> ）</li>
+<li>安装脚本中的 <code class="docutils literal"><span class="pre">zip_safe</span></code> 标志必须被设置为 <code class="docutils literal"><span class="pre">False</span></code> ，即使扩展对于
+压缩是安全的</li>
+<li>现行扩展必须支持 Python 2.5 ， 2.6 以及 2.7</li>
+</ol>
+</div>
+<div class="section" id="ext-import-transition">
+<span id="id7"></span><h2>扩展导入的过渡<a class="headerlink" href="#ext-import-transition" title="Permalink to this headline">¶</a></h2>
+<p>一段时间，我们推荐对 Flask 扩展使用命名空间包。这在实践中被证明是有问题
+的，因为许多不同命名空间包系统存在竞争，并且 pip 会自动在不同的系统中切
+换，这给用户导致了许多问题。</p>
+<p>现在，我们推荐命名包为 <code class="docutils literal"><span class="pre">flask_foo</span></code> 替代过时的 <code class="docutils literal"><span class="pre">flaskext.foo</span></code> 。Flask
+0.8 引入了重定向导入系统，允许从 <code class="docutils literal"><span class="pre">flask.ext.foo</span></code> 导入，并且如果
+<code class="docutils literal"><span class="pre">flaskext.foo</span></code> 失败时，会首先尝试 <code class="docutils literal"><span class="pre">flask_foo</span></code> 。</p>
+<p>Flask 扩展应该力劝用户从 <code class="docutils literal"><span class="pre">flask.ext.foo</span></code> 导入，而不是 <code class="docutils literal"><span class="pre">flask_foo</span></code>
+或 <code class="docutils literal"><span class="pre">flaskext_foo</span></code> ，这样扩展可以迁移到新的包名称而不烦扰用户。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Flask 扩展开发</a><ul>
+<li><a class="reference internal" href="#id1">剖析扩展</a></li>
+<li><a class="reference internal" href="#hello-flaskext">“Hello Flaskext!”</a><ul>
+<li><a class="reference internal" href="#setup-py">setup.py</a></li>
+<li><a class="reference internal" href="#flask-sqlite3-py">flask_sqlite3.py</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">初始化扩展</a></li>
+<li><a class="reference internal" href="#id3">扩展的代码</a></li>
+<li><a class="reference internal" href="#app-ctx-stack">使用 _app_ctx_stack</a></li>
+<li><a class="reference internal" href="#id4">销毁行为</a></li>
+<li><a class="reference internal" href="#id5">他山之玉，可以攻石</a></li>
+<li><a class="reference internal" href="#id6">已审核的扩展</a></li>
+<li><a class="reference internal" href="#ext-import-transition">扩展导入的过渡</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="unicode.html" title="previous chapter">Flask 中的 Unicode</a></li>
+      <li>Next: <a href="styleguide.html" title="next chapter">Pocoo 风格指引</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/extensiondev.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/extensiondev.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

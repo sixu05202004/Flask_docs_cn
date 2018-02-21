@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Flask 中的 Unicode &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Flask 扩展开发" href="extensiondev.html" />
+    <link rel="prev" title="安全注意事项" href="security.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="flask-unicode">
+<h1>Flask 中的 Unicode<a class="headerlink" href="#flask-unicode" title="Permalink to this headline">¶</a></h1>
+<p>Flask 像 Jinja2 和 Werkzeug 一样，涉及到文本时，完全基于 Unicode 。不仅是
+这些库，大多数 web 相关的 Python 库这样处理文本。如果你还不知道 Unicode
+是什么，你可能需要阅读 <a class="reference external" href="http://www.joelonsoftware.com/articles/Unicode.html">The Absolute Minimum Every Software Developer
+Absolutely, Positively Must Know About Unicode and Character Sets</a> 。这部分文档试图
+掩盖最基本的东西，使得你在 Unicode 相关的事情上有愉快的经历。</p>
+<div class="section" id="id1">
+<h2>自动转换<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Flask 有一些关于你应用的假设（当然你可以更改）来给你基本的且无痛苦的
+Unicode 支持:</p>
+<ul class="simple">
+<li>你网站上文本的编码是 UTF-8</li>
+<li>你在内部对文本始终只使用 Unicode ，除非是只有 ASCII 字符的字面量字符串</li>
+<li>无论何时你使用需要传送字节的协议会话，编码和解码都会发生</li>
+</ul>
+<p>所以这对你以为这什么？</p>
+<p>HTTP 是基于字节的。不仅是协议，用于定位服务器上文档的系统也是这样（即 URI
+或 URL ）。然而，通常在 HTTP 上传送的 HTML  支持种类繁多的字符集，并且用于
+并在 HTTP header 中传输。为了不使这太复杂， Flask 假设你发出你想要的 UTF-8
+编码的 Unicode 。 Flask 会为你编码并设置何时适当的标头。</p>
+<p>当你通过 SQLAlchemy 或类似的 ORM 系统与数据库会话也是同样的。一些数据库有
+传输 Unicode 的协议，而如果它们没有， SQLALchemy 或其它的 ORM 也会顾及到。</p>
+</div>
+<div class="section" id="id2">
+<h2>金科玉律<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>经验法则：如果你不处理二进制数据，请使用 Unicode 。在 Python 2.x 中，使用
+Unicode 以为着什么？</p>
+<ul class="simple">
+<li>只要你只在使用 ASCII charpoints （基本是数字、非变音或非奇特的拉丁字
+母），你可以使用常规的字符串常量（ <code class="docutils literal"><span class="pre">'Hello</span> <span class="pre">World'</span></code> ）</li>
+<li>如果你需要在一个字符串里有 ASCII 之外的东西，你需要把这个字符串标记
+为 Unicode 字符串，方法是加上一个小写 <cite>u</cite> 的前缀（比如
+<code class="docutils literal"><span class="pre">u'Hänsel</span> <span class="pre">und</span> <span class="pre">Gretel'</span></code> ）</li>
+<li>如果你在 Python 文件中使用了非 Unicode 字符，你需要告诉 Python 你的文
+件使用了何种编码。我再次建议为此使用 UTF-8 。你可以在你 Python 源文件
+的第一行或第二行写入 <code class="docutils literal"><span class="pre">#</span> <span class="pre">-*-</span> <span class="pre">coding:</span> <span class="pre">utf-8</span> <span class="pre">-*-</span></code> 来告知解释器你的编码
+类型。</li>
+<li>Jinja 被配置为从 UTF-8 解码模板文件。所以确保你的编辑器也保存文件为
+UTF-8 编码。</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>自行编解码<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>如果你在于一个不真正基于 Unicode 的文件系统或别的什么东西会话，你需要确保
+你在使用 Unicode 接口工作时妥善地解码。所以，比如当你想要在文件系统中加载
+一个文件，并嵌入到 Jinja2 模板是，你需要按照文件的编码来解码。这里有一个
+老问题就是文本文件不指定有效的编码，所以限定你在文本文件中使用 UTF-8 会帮
+你自己一个忙。</p>
+<p>无论如何，以 Unicode 加载这样文件，你可以使用内置的 <code class="xref py py-meth docutils literal"><span class="pre">str.decode()</span></code> 方
+法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">charset</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>从 Unicode 转换成指定的字符集，你可以使用 <code class="xref py py-meth docutils literal"><span class="pre">unicode.encode()</span></code> 方法:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">write_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">contents</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">contents</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">charset</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>配置编辑器<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>现在的大多数编辑器默认存储为 UTF-8 ，但是如果你的编辑器没有配置为这样，你
+需要更改它。这里是设置你编辑器存储为 UTF-8 的通用做法:</p>
+<ul>
+<li><p class="first">Vim: 在你的 <code class="docutils literal"><span class="pre">.vimrc</span></code> 文件中加入 <code class="docutils literal"><span class="pre">set</span> <span class="pre">enc=utf-8</span></code></p>
+</li>
+<li><p class="first">Emacs: 使用编码 cookie 或把这放入到你的 <code class="docutils literal"><span class="pre">.emacs</span></code> 文件:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">prefer</span><span class="o">-</span><span class="n">coding</span><span class="o">-</span><span class="n">system</span> <span class="s1">&#39;utf-8)</span>
+<span class="p">(</span><span class="n">setq</span> <span class="n">default</span><span class="o">-</span><span class="n">buffer</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="n">coding</span><span class="o">-</span><span class="n">system</span> <span class="s1">&#39;utf-8)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Notepad++:</p>
+<ol class="arabic simple">
+<li>打开 <em>设置 -&gt; 首选项 …</em></li>
+<li>选择“新建”选项卡</li>
+<li>选择“ UTF-8 无 BOM ”作为编码</li>
+</ol>
+<p>同样也建议使用 Unix 的换行格式，可以在相同的面板中选择，但不是必须的。</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Flask 中的 Unicode</a><ul>
+<li><a class="reference internal" href="#id1">自动转换</a></li>
+<li><a class="reference internal" href="#id2">金科玉律</a></li>
+<li><a class="reference internal" href="#id3">自行编解码</a></li>
+<li><a class="reference internal" href="#id4">配置编辑器</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="security.html" title="previous chapter">安全注意事项</a></li>
+      <li>Next: <a href="extensiondev.html" title="next chapter">Flask 扩展开发</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/unicode.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/unicode.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

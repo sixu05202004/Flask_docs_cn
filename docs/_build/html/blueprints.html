@@ -1,0 +1,242 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>用蓝图实现模块化应用 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Flask 扩展" href="extensions.html" />
+    <link rel="prev" title="请求上下文" href="reqcontext.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="blueprints">
+<span id="id1"></span><h1>用蓝图实现模块化应用<a class="headerlink" href="#blueprints" title="Permalink to this headline">¶</a></h1>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.7.</span></p>
+</div>
+<p>Flask 使用了 <em>蓝图</em> 的概念在一个应用或者跨应用中构建应用组件以及支持通用模式。 蓝图很好地简化了大型应用工作的方式，并提供给 Flask 扩展在应用上注册操作的核心方法。 一个 <code class="xref py py-class docutils literal"><span class="pre">Blueprint</span></code> 对象与 <code class="xref py py-class docutils literal"><span class="pre">Flask</span></code> 应用对象的工作方式很像，但它确实不是一个应用， 而是一个描述如何构建或扩展应用的 <em>蓝图</em> 。</p>
+<div class="section" id="id2">
+<h2>为什么用蓝图？<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Flask中的蓝图旨在针对这些情况:</p>
+<ul class="simple">
+<li>把一个应用分解成一系列的蓝图。对于大型的应用是理想化的；一个项目能实例化一个应用， 初始化一些扩展，以及注册一系列的蓝图。</li>
+<li>以一个 URL 前缀和/或子域在一个应用上注册蓝图。 URL 前缀/子域名中的参数即成为这个蓝图下的所有视图函数的共同的视图参数（默认情况下）。</li>
+<li>在一个应用中用不同的 URL 规则多次注册一个蓝图。</li>
+<li>通过蓝图提供模板过滤器、静态文件、模板和其它功能。一个蓝图不一定要实现应用或视图函数。</li>
+<li>初始化一个 Flask 扩展时，在这些情况中注册蓝图。</li>
+</ul>
+<p>Flask 中的蓝图不是即插应用，因为它实际上并不是一个应用 – 它是可以注册，甚至可以多次注册到应用上的操作集合。为什么不使用多个应用对象？你可以做到那样 （见 <a class="reference internal" href="patterns/appdispatch.html#app-dispatch"><span class="std std-ref">应用调度</span></a> ），但是你的应用会有分开的配置，并在 WSGI 层管理。</p>
+<p>蓝图作为 Flask 层提供分割的替代，共享应用配置，并且可以更改所注册的应用对象。其短板是你不能在应用创建后撤销注册一个蓝图而不销毁整个应用对象。</p>
+</div>
+<div class="section" id="id3">
+<h2>蓝图的概念<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>蓝图的基本设想是它们记录注册到一个应用时的操作执行情况。 当从一个端点到另一端分发请求和生成 URL 时，Flask 关联视图函数和蓝图。</p>
+</div>
+<div class="section" id="id4">
+<h2>第一个蓝图<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>这看起来像是一个非常基本的蓝图。在这个案例中，我们想要实现一个简单渲染静态模板的蓝图:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Blueprint</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">abort</span>
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="k">import</span> <span class="n">TemplateNotFound</span>
+
+<span class="n">simple_page</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s1">&#39;simple_page&#39;</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">,</span>
+                        <span class="n">template_folder</span><span class="o">=</span><span class="s1">&#39;templates&#39;</span><span class="p">)</span>
+
+<span class="nd">@simple_page</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;page&#39;</span><span class="p">:</span> <span class="s1">&#39;index&#39;</span><span class="p">})</span>
+<span class="nd">@simple_page</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&lt;page&gt;&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="n">page</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;pages/</span><span class="si">%s</span><span class="s1">.html&#39;</span> <span class="o">%</span> <span class="n">page</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">TemplateNotFound</span><span class="p">:</span>
+        <span class="n">abort</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>当我们使用 <code class="docutils literal"><span class="pre">\&#64;simple_page.route</span></code> 装饰器绑定函数时，蓝图会记录下所登记的 <cite>show</cite> 函数。当以后在应用中注册蓝图时，这个函数会被注册到应用中。此外，它会给函数名加上由 <code class="xref py py-class docutils literal"><span class="pre">Blueprint</span></code> 的构造函数中给出的蓝图的名称作为前缀 (在此例中是 <code class="docutils literal"><span class="pre">simple_page</span></code> )。</p>
+</div>
+<div class="section" id="id5">
+<h2>注册蓝图<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>如何注册蓝图了？像这样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">yourapplication.simple_page</span> <span class="k">import</span> <span class="n">simple_page</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">simple_page</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>如果你检查注册到应用的规则，你将会发现这些:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/static/&lt;filename&gt;&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">static</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/&lt;page&gt;&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">simple_page</span><span class="o">.</span><span class="n">show</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">simple_page</span><span class="o">.</span><span class="n">show</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>第一个显然是来自应用自身，用于静态文件。其它的两个用于 <code class="docutils literal"><span class="pre">simple_page</span></code> 蓝图中的 <cite>show</cite> 函数。如你所见，它们的前缀是蓝图的名称，并且用一个点(<code class="docutils literal"><span class="pre">.</span></code>)来分割。</p>
+<p>不过，蓝图也可以在不同的位置挂载:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">simple_page</span><span class="p">,</span> <span class="n">url_prefix</span><span class="o">=</span><span class="s1">&#39;/pages&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>果然，生成这些规则:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/static/&lt;filename&gt;&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">static</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/pages/&lt;page&gt;&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">simple_page</span><span class="o">.</span><span class="n">show</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="o">&lt;</span><span class="n">Rule</span> <span class="s1">&#39;/pages/&#39;</span> <span class="p">(</span><span class="n">HEAD</span><span class="p">,</span> <span class="n">OPTIONS</span><span class="p">,</span> <span class="n">GET</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">simple_page</span><span class="o">.</span><span class="n">show</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>总之，你可以多次注册蓝图，但是不一定每个蓝图都能正确响应。 是否能够多次注册实际上取决于你的蓝图是如何编写的，是否能根据不同的位置做出正确的响应。</p>
+</div>
+<div class="section" id="id6">
+<h2>蓝图资源<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>蓝图也可以提供资源。有时候你会只为它提供的资源而引入一个蓝图。</p>
+<div class="section" id="id7">
+<h3>蓝图资源文件夹<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>与常规应用一样，蓝图被认为是包含在一个文件夹中。虽然多个蓝图可以源自相同的文件夹中， 它并不必须是这种情况并且通常不建议这样做。</p>
+<p>这个文件夹会从 <code class="xref py py-class docutils literal"><span class="pre">Blueprint</span></code> 的第二个参数中推断出来，通常是 <cite>__name__</cite> 。 这个参数决定对应蓝图的是哪个逻辑的 Python 模块或包。如果它指向一个存在的 Python 包，这个包（通常是文件系统中的文件夹）就是资源文件夹。如果是一个模块， 模块所在的包就是资源文件夹。你可以访问 <code class="xref py py-attr docutils literal"><span class="pre">Blueprint.root_path</span></code> 属性来查看资源文件夹什么:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">simple_page</span><span class="o">.</span><span class="n">root_path</span>
+<span class="go">&#39;/Users/username/TestProject/yourapplication&#39;</span>
+</pre></div>
+</div>
+<p>你可以使用 <code class="xref py py-meth docutils literal"><span class="pre">open_resource()</span></code> 函数快速性这个文件夹中打开资源:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">simple_page</span><span class="o">.</span><span class="n">open_resource</span><span class="p">(</span><span class="s1">&#39;static/style.css&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h3>静态文件<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>一个蓝图可以通过 <cite>static_folder</cite> 关键字参数提供一个指向文件系统上文件夹的路 径，来公开一个带有静态文件的文件夹。这可以是一个绝对路径，也可以是相对于蓝图文件夹的路径:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">admin</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">,</span> <span class="n">static_folder</span><span class="o">=</span><span class="s1">&#39;static&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>默认情况下，路径最右边的部分就是它在 web 上所公开的地址。因为这里这个文件夹叫做 <code class="docutils literal"><span class="pre">static</span></code> ， 它会在蓝图 + <code class="docutils literal"><span class="pre">/static</span></code> 的位置上可用。也就是说，蓝图为 <code class="docutils literal"><span class="pre">/admin</span></code> 把静态文件夹注册到 <code class="docutils literal"><span class="pre">/admin/static</span></code> 。</p>
+<p>最后是命名的 <cite>blueprint_name.static</cite> ，这样你可以生成它的 URL ，就像你对应用的静态文件夹所做的那样:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;admin.static&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;style.css&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h3>模板<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>如果你想要蓝图公开模板，你可以提供 <code class="xref py py-class docutils literal"><span class="pre">Blueprint</span></code> 构造函数中的 <cite>template_folder</cite> 参数来实现:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">admin</span> <span class="o">=</span> <span class="n">Blueprint</span><span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="s1">&#39;templates&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>像对待静态文件一样，路径可以是绝对的或是相对蓝图资源文件夹的。模板文件夹会 被加入到模板的搜索路径中，但是比实际的应用模板文件夹优先级低。 这样，你可以容易地在实际的应用中覆盖蓝图提供的模板。</p>
+<p>那么当你有一个 <code class="docutils literal"><span class="pre">yourapplication/admin</span></code> 文件夹中的蓝图并且你想要渲染 <code class="docutils literal"><span class="pre">'admin/index.html'</span></code> 模板， 且你已经提供了 <code class="docutils literal"><span class="pre">templates</span></code> 作为 <cite>template_folder</cite> ，你需要这样创建文件: <code class="docutils literal"><span class="pre">yourapplication/admin/templates/admin/index.html</span></code>。</p>
+</div>
+</div>
+<div class="section" id="urls">
+<h2>构建 URLs<a class="headerlink" href="#urls" title="Permalink to this headline">¶</a></h2>
+<p>当你想要从一个页面链接到另一个页面，你可以像通常一个样使用 <code class="xref py py-func docutils literal"><span class="pre">url_for()</span></code> 函数，只是你要在 URL 的末端加上蓝图的名称和一个点(<code class="docutils literal"><span class="pre">.</span></code>)作为前缀:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;admin.index&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>此外，如果你在一个蓝图的视图函数或是模板中想要从链接到同一蓝图下另一个端点， 你可以通过对端点的只加上一个点作为前缀来使用相对的重定向:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;.index&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>这个案例中，它实际上链接到 <code class="docutils literal"><span class="pre">admin.index</span></code> ，假如请求被分派到任何其它的 admin 蓝图端点。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="index.html">
+  <img class="logo" src="_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">用蓝图实现模块化应用</a><ul>
+<li><a class="reference internal" href="#id2">为什么用蓝图？</a></li>
+<li><a class="reference internal" href="#id3">蓝图的概念</a></li>
+<li><a class="reference internal" href="#id4">第一个蓝图</a></li>
+<li><a class="reference internal" href="#id5">注册蓝图</a></li>
+<li><a class="reference internal" href="#id6">蓝图资源</a><ul>
+<li><a class="reference internal" href="#id7">蓝图资源文件夹</a></li>
+<li><a class="reference internal" href="#id8">静态文件</a></li>
+<li><a class="reference internal" href="#id9">模板</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#urls">构建 URLs</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="reqcontext.html" title="previous chapter">请求上下文</a></li>
+      <li>Next: <a href="extensions.html" title="next chapter">Flask 扩展</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/blueprints.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/blueprints.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

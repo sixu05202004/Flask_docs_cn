@@ -1,0 +1,183 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Step 5: 视图函数 &#8212; Flask 0.12.2 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.12.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/flask-favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Step 6: 模版" href="templates.html" />
+    <link rel="prev" title="Step 4: 请求数据库连接" href="dbcon.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="apple-touch-icon" href="../_static/touch-icon.png" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="step-5">
+<span id="tutorial-views"></span><h1>Step 5: 视图函数<a class="headerlink" href="#step-5" title="Permalink to this headline">¶</a></h1>
+<p>现在数据库连接已经工作我们可以开始编写视图函数。我们需要四个视图函数：</p>
+<div class="section" id="id1">
+<h2>显示条目<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>这个视图显示所有存储在数据库中的条目。它监听者应用的根地址以及将会从数据库中查询标题和内容。
+id值最大的条目（最新的条目）将在最前面。从游标返回的行是按 select 语句中声明的列组织的元组。
+对于像我们这样的小应用是足够的，但是你可能要把它们转换成字典。如果你对如何转换成字典感兴趣的话，
+请查阅 <a class="reference internal" href="../patterns/sqlite3.html#easy-querying"><span class="std std-ref">简化查询</span></a> 例子。</p>
+<p>视图函数将会把条目作为字典传入 <cite>show_entries.html</cite> 模版以及返回渲染结果:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_entries</span><span class="p">():</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;select title, text from entries order by id desc&#39;</span><span class="p">)</span>
+    <span class="n">entries</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;show_entries.html&#39;</span><span class="p">,</span> <span class="n">entries</span><span class="o">=</span><span class="n">entries</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>添加新条目<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>这个视图允许登录的用户添加新的条目。它只回应 <cite>POST</cite> 请求，实际的表单是显示在 <cite>show_entries</cite> 页面。
+如果一些工作正常的话，我们用 <a class="reference internal" href="../api.html#flask.flash" title="flask.flash"><code class="xref py py-func docutils literal"><span class="pre">flash()</span></code></a> 向下一个请求闪现一条信息并且跳转回 <cite>show_entries</cite> 页:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/add&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">add_entry</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;logged_in&#39;</span><span class="p">):</span>
+        <span class="n">abort</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;insert into entries (title, text) values (?, ?)&#39;</span><span class="p">,</span>
+                 <span class="p">[</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]])</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;New entry was successfully posted&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;show_entries&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>注意我们这里检查用户登录情况( <cite>logged_in</cite> 键存在会话中，并且为 <cite>True</cite> )。</p>
+<div class="admonition- admonition">
+<p class="first admonition-title">安全提示</p>
+<p class="last">确保像上面例子中一样，使用问号标记来构建 SQL 语句。否则，当你使用格式化字符串构建 SQL 语句时，
+你的应用容易遭受 SQL 注入。
+更多的信息请看 <a class="reference internal" href="../patterns/sqlite3.html#sqlite3"><span class="std std-ref">在 Flask 中使用 SQLite 3</span></a> 。</p>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>登录和注销<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>这些函数是用于用户登录以及注销。依据在配置中的值登录时检查用户名和密码并且在会话中设置 <cite>logged_in</cite> 键值。
+如果用户成功登录，<cite>logged_in</cite> 键值被设置成 <cite>True</cite> ，并跳转回 <cite>show_entries</cite> 页。此外，会有消息闪现来提示用户登入成功。 如果发生一个错误，模板会通知，并提示重新登录:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;USERNAME&#39;</span><span class="p">]:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;Invalid username&#39;</span>
+        <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;PASSWORD&#39;</span><span class="p">]:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;Invalid password&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">session</span><span class="p">[</span><span class="s1">&#39;logged_in&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;You were logged in&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;show_entries&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;login.html&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>另一方面，注销函数从会话中移除了 <cite>logged_in</cite> 键值。这里我们使用一个大绝招：如果你使用字典的 <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict.pop" title="(in Python v3.6)"><code class="xref py py-meth docutils literal"><span class="pre">pop()</span></code></a> 方法并传入第二个参数（默认）， 这个方法会从字典中删除这个键，如果这个键不存在则什么都不做。这很有用，因为 我们不需要检查用户是否已经登入。</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/logout&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">logout</span><span class="p">():</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;logged_in&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;You were logged out&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;show_entries&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>继续浏览 <a class="reference internal" href="templates.html#tutorial-templates"><span class="std std-ref">Step 6: 模版</span></a> 。</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="../_static/flask.png" alt="Logo"/>
+</a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Step 5: 视图函数</a><ul>
+<li><a class="reference internal" href="#id1">显示条目</a></li>
+<li><a class="reference internal" href="#id2">添加新条目</a></li>
+<li><a class="reference internal" href="#id3">登录和注销</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">教程</a><ul>
+      <li>Previous: <a href="dbcon.html" title="previous chapter">Step 4: 请求数据库连接</a></li>
+      <li>Next: <a href="templates.html" title="next chapter">Step 6: 模版</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorial/views.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2010 - 2018, Armin Ronacher.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/tutorial/views.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
